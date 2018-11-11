@@ -39,38 +39,32 @@ variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", 
 # USE A LONG LIST OF GOOD VARIABLE NAMES IN variable_names.json snakeCase
 # READ http://saral.navgurukul.org/course?id=18&slug=python__variables%2Fvariables-naming-conventions before defining variable names - have a mix of two names
 
+def makeBoolean():
+    if random.random()>0.5:
+        return True
+    return False
+
+def makeString():
+    return random.choice(variables_array)
+
 def makeList():
-    cases = [["VARNAME", "=", 'NUMBER'],
-                ["VARNAME", "=", 'STRING'],
-                ["VARNAME", "=", 'BOOLEAN'],
-                ["VARNAME", "=", 'LIST']
-            ]
-
+    cases = ['NUMBER', 'STRING', 'BOOLEAN', 'LIST']
     rcase = random.choice(cases)
-    new_case_list = []
-    new_case = ""
-    for i in range(len(rcase)):
-        for keyword in rcase:
-            if keyword == "VARNAME":
-                var_name = random.choice(variables_array)
-                new_case += var_name
-                dic = {"name": var_name, "type": rcase[2]} #MAKE THIS GENERIC
-                variable_map.append(dic)
 
-            elif keyword == "NUMBER":
-                new_case += makeNumber()
-            elif keyword == "BOOLEAN":
-                new_case += random.choice(boolean_values)
-            elif keyword == "STRING":
-                new_case += '"' + random.choice(variables_array) + '"'
-            elif keyword == "LIST":
-                new_case_list.append(makeList())
-            else:
-                new_case += keyword
-            new_case += " "
-        new_case_list.append(new_case)
-    print new_case_list, "new_case_list"
-    return new_case_list
+    new_case = []
+    num_elements = int(random.random()*5)
+
+    for i in range(num_elements):
+        if rcase == 'NUMBER':
+            new_case.append(makeNumber())
+        elif rcase == 'STRING':
+            new_case.append(makeString())
+        elif rcase == 'BOOLEAN':
+            new_case.append(makeBoolean())
+        elif rcase == 'LIST':
+            new_case.append(makeList())
+
+    return str(new_case)
 
 
 def makeVarAssignment():
@@ -193,6 +187,14 @@ def makeCondition():
 
     return 'BUG'
 
-# also return answer of your question
+def makeBlock(num=5):
+    statements = []
+    num_statements = int(random.random()*num)
+    for i in range(num_statements):
+        statements.append(makeStatement())
+    return statements
+
+# also return answer of your questions
 # print makeCondition()
-print makeStatement()
+for i in makeBlock():
+    print i
