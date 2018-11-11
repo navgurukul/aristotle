@@ -1,41 +1,97 @@
 
 import random
 
-concept_arrays = ["bracket", "and", "or", "not", "bool"]
+"""
+Our current vocab
+
+CONDITION
+and
+or
+not
+BRACKET
+number
+CONDITIONAL_OPERATOR
+"""
+
+concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", "BASIC_OPERATORS", "MODULUS_OPERATOR"]
+basic_operators = ["+", "-", "*", "/"]
+modulus_operator = "%"
+conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
+
+# BLOCKS => LIST OF STATEMENTS (Random length upto say 5 )
+# STATEMENT => CONDITION
+# STATEMENT => NUMBER
+# STATEMENT => VAR = NUMBER
+
+def makeNumber():
+    cases = [["FLOAT"], ["INTEGER"]]
+
+    if "BASIC_OPERATORS" in concept_arrays:
+        cases.append(["NUMBER", "BASIC_OPERATOR", "NUMBER"])
+    
+    if "MODULUS_OPERATOR" in concept_arrays:
+        cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_INTEGER"])
+
+    rcase = random.choice(cases)
+
+    new_case = ""
+    for keyword in rcase:
+        if keyword=="FLOAT":
+            # TODO DO FLOAT TO STRING HERE
+            new_case += str(int(random.random()*100))
+        elif keyword=="INTEGER":
+            new_case += str(int(random.random()*100))
+        elif keyword=="SMALL_INTEGER":
+            new_case += str(int(random.random()*10))
+        elif keyword=="NUMBER":
+            new_case += makeNumber()
+        elif keyword=="BASIC_OPERATOR":
+            new_case += random.choice(basic_operators)
+        else:
+            new_case += modulus_operator
+        new_case += " "
+
+    return new_case
 
 def makeCondition():
     cases = [["True"], ["False"]]
 
-    if "bracket" in concept_arrays:
-        cases.append(["(", "makeCondition", ")"])
+    if "BRACKET" in concept_arrays:
+        cases.append(["(", "CONDITION", ")"])
     
     if "and" in concept_arrays:
-        cases.append(["makeCondition", "and", "makeCondition"])
+        cases.append(["CONDITION", "and", "CONDITION"])
     
     if "or" in concept_arrays:
-        cases.append(["makeCondition", "or", "makeCondition"])
+        cases.append(["CONDITION", "or", "CONDITION"])
     
     if "not" in concept_arrays:
-        cases.append(["not", "makeCondition"])
+        cases.append(["not", "CONDITION"])
+    
+    if "CONDITIONAL_OPERATOR" in concept_arrays:
+        cases.append(["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"])
 
-    random_case = int(random.random() * len (cases))
-
-    rcase = cases[random_case]
+    rcase = random.choice(cases)
 
     if len(rcase) == 1:
         return rcase[0]
     
     else:
         new_case = ""
-        for str in rcase:
-            if str=="makeCondition":
-                new_case += makeCondition() + " "
+        for keyword in rcase:
+            if keyword=="CONDITION":
+                new_case += makeCondition()
+            elif keyword=="NUMBER":
+                new_case += makeNumber()
+            elif keyword=="CONDITIONAL_OPERATOR":
+                new_case += random.choice(conditional_operators)
             else:
-                new_case += str + " "
+                new_case += keyword
+            new_case += " "
 
         return new_case
 
     return 'BUG'
 
-
+# also return answer of your question
 print makeCondition()
