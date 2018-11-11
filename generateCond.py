@@ -22,6 +22,9 @@ conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
 # STATEMENT => CONDITION
 # STATEMENT => NUMBER
 # STATEMENT => VAR = NUMBER
+# STATEMENT => VAR = VAR
+# USE A LONG LIST OF GOOD VARIABLE NAMES IN variable_names.json snakeCase
+# READ http://saral.navgurukul.org/course?id=18&slug=python__variables%2Fvariables-naming-conventions before defining variable names - have a mix of two names
 
 def makeNumber():
     cases = [["FLOAT"], ["INTEGER"]]
