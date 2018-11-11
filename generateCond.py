@@ -1,5 +1,6 @@
 
 import random
+import ast
 
 """
 Our current vocab
@@ -13,19 +14,21 @@ number
 CONDITIONAL_OPERATOR
 """
 
-concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", "BASIC_OPERATORS", "MODULUS_OPERATOR", "VAR_ASSIGNMENT"]
+concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
+                  "BASIC_OPERATORS", "MODULUS_OPERATOR", "VAR_ASSIGNMENT", "IFELSE"]
 basic_operators = ["+", "-", "*", "/"]
 modulus_operator = "%"
 conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
 boolean_values = ["True", "False"]
 
-#Kaun kaun se variables, kis type se define kiye hai
+# Kaun kaun se variables, kis type se define kiye hai
 # [{name: "shivam", type: "bool"}]
 
 variable_map = []
 
 
-variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth", "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
+variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
+                   "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
 
 # BLOCKS => LIST OF STATEMENTS (Random length upto say 5 )
 # STATEMENT => CONDITION
@@ -39,16 +42,21 @@ variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", 
 # USE A LONG LIST OF GOOD VARIABLE NAMES IN variable_names.json snakeCase
 # READ http://saral.navgurukul.org/course?id=18&slug=python__variables%2Fvariables-naming-conventions before defining variable names - have a mix of two names
 
+
 def makeBoolean():
-    if random.random()>0.5:
+    if random.random() > 0.5:
         return True
     return False
+
 
 def makeString():
     return random.choice(variables_array)
 
-def makeList():
-    cases = ['NUMBER', 'STRING', 'BOOLEAN', 'LIST']
+
+def makeList(level=3):
+    cases = ['NUMBER', 'STRING', 'BOOLEAN']
+    if level > 1:
+        cases.append('LIST')
     rcase = random.choice(cases)
 
     new_case = []
@@ -62,17 +70,17 @@ def makeList():
         elif rcase == 'BOOLEAN':
             new_case.append(makeBoolean())
         elif rcase == 'LIST':
-            new_case.append(makeList())
+            new_case.append(ast.literal_eval(makeList()))
 
     return str(new_case)
 
 
 def makeVarAssignment():
     cases = [["VARNAME", "=", 'NUMBER'],
-                ["VARNAME", "=", 'STRING'],
-                ["VARNAME", "=", 'BOOLEAN'],
-                ["VARNAME", "=", 'LIST']
-            ]
+             ["VARNAME", "=", 'STRING'],
+             ["VARNAME", "=", 'BOOLEAN'],
+             ["VARNAME", "=", 'LIST']
+             ]
 
     rcase = random.choice(cases)
     new_case = ""
@@ -81,7 +89,7 @@ def makeVarAssignment():
         if keyword == "VARNAME":
             var_name = random.choice(variables_array)
             new_case += var_name
-            dic = {"name": var_name, "type": rcase[2]} #MAKE THIS GENERIC
+            dic = {"name": var_name, "type": rcase[2]}  # MAKE THIS GENERIC
             variable_map.append(dic)
 
         elif keyword == "NUMBER":
@@ -100,19 +108,29 @@ def makeVarAssignment():
 
 
 def makeStatement():
-    cases = [['CONDITION'], ['NUMBER'], ["VAR_ASSIGNMENT"]]
+    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT"]
 
     rcase = random.choice(cases)
 
     new_case = ""
-    for keyword in rcase:
-        if keyword == "CONDITION":
-            new_case += makeCondition()
-        elif keyword == "NUMBER":
-            new_case += makeNumber()
-        elif keyword == "VAR_ASSIGNMENT":
-            new_case += makeVarAssignment()
-        new_case += " "
+    if rcase == "CONDITION":
+        new_case += makeCondition(level=4)
+    elif rcase == "NUMBER":
+        new_case += makeNumber()
+    elif rcase == "VAR_ASSIGNMENT":
+        new_case += makeVarAssignment()
+
+    while ("  " in new_case):
+        new_case = new_case.replace("  ", " ")
+
+    while ("( " in new_case):
+        new_case = new_case.replace("( ", "(")
+
+    while (" )" in new_case):
+        new_case = new_case.replace(" )", ")")
+
+    if new_case.startswith(" "):
+        new_case = new_case[1:]
 
     return new_case
 
@@ -130,16 +148,16 @@ def makeNumber():
 
     new_case = ""
     for keyword in rcase:
-        if keyword=="FLOAT":
+        if keyword == "FLOAT":
             # TODO DO FLOAT TO STRING HERE
-            new_case += repr(random.random()*100)
-        elif keyword=="INTEGER":
+            new_case += str("{:12.2f}".format(random.random()*100))
+        elif keyword == "INTEGER":
             new_case += str(int(random.random()*100))
-        elif keyword=="SMALL_INTEGER":
+        elif keyword == "SMALL_INTEGER":
             new_case += str(int(random.random()*10))
-        elif keyword=="NUMBER":
+        elif keyword == "NUMBER":
             new_case += makeNumber()
-        elif keyword=="BASIC_OPERATOR":
+        elif keyword == "BASIC_OPERATOR":
             new_case += random.choice(basic_operators)
         else:
             new_case += modulus_operator
@@ -147,22 +165,23 @@ def makeNumber():
 
     return new_case
 
-def makeCondition():
+
+def makeCondition(level=4):
     cases = [["True"], ["False"]]
 
-    if "BRACKET" in concept_arrays:
+    if "BRACKET" in concept_arrays and level > 1:
         cases.append(["(", "CONDITION", ")"])
 
-    if "and" in concept_arrays:
+    if "and" in concept_arrays and level > 1:
         cases.append(["CONDITION", "and", "CONDITION"])
 
-    if "or" in concept_arrays:
+    if "or" in concept_arrays and level > 1:
         cases.append(["CONDITION", "or", "CONDITION"])
 
-    if "not" in concept_arrays:
+    if "not" in concept_arrays and level > 1:
         cases.append(["not", "CONDITION"])
 
-    if "CONDITIONAL_OPERATOR" in concept_arrays:
+    if "CONDITIONAL_OPERATOR" in concept_arrays and level > 1:
         cases.append(["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"])
 
     rcase = random.choice(cases)
@@ -173,11 +192,11 @@ def makeCondition():
     else:
         new_case = ""
         for keyword in rcase:
-            if keyword=="CONDITION":
-                new_case += makeCondition()
-            elif keyword=="NUMBER":
+            if keyword == "CONDITION":
+                new_case += makeCondition(level=level-1)
+            elif keyword == "NUMBER":
                 new_case += makeNumber()
-            elif keyword=="CONDITIONAL_OPERATOR":
+            elif keyword == "CONDITIONAL_OPERATOR":
                 new_case += random.choice(conditional_operators)
             else:
                 new_case += keyword
@@ -187,14 +206,16 @@ def makeCondition():
 
     return 'BUG'
 
+
 def makeBlock(num=5):
     statements = []
-    num_statements = int(random.random()*num)
+    num_statements = int(random.random()*num)+1
     for i in range(num_statements):
         statements.append(makeStatement())
     return statements
 
-# also return answer of your questions
-# print makeCondition()
+
 for i in makeBlock():
     print i
+
+print variable_map
