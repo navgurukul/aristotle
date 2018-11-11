@@ -59,27 +59,32 @@ def makeList(level=3):
         cases.append('LIST')
     rcase = random.choice(cases)
 
-    new_case = []
+    new_case = '['
     num_elements = int(random.random()*5)
 
     for i in range(num_elements):
         if rcase == 'NUMBER':
-            new_case.append(makeNumber())
+            new_case = new_case + makeNumber() + ', '
         elif rcase == 'STRING':
-            new_case.append(makeString())
+            new_case = new_case + makeString() + ', '
         elif rcase == 'BOOLEAN':
-            new_case.append(makeBoolean())
+            bool_val = str(makeBoolean())
+            new_case = new_case + bool_val + ', '
         elif rcase == 'LIST':
-            new_case.append(ast.literal_eval(makeList()))
+            new_case = new_case + makeList(level=level-2) + ', '
+            # ast.literal_eval(makeList(level=level-2)) + ', '
 
-    return str(new_case)
+    new_case = new_case[:-2]
+    new_case += ']'
+    return new_case
 
 
 def makeVarAssignment():
     cases = [["VARNAME", "=", 'NUMBER'],
              ["VARNAME", "=", 'STRING'],
              ["VARNAME", "=", 'BOOLEAN'],
-             ["VARNAME", "=", 'LIST']
+             ["VARNAME", "=", 'LIST'],
+             ["VARNAME", "=", 'CONDITION']
              ]
 
     rcase = random.choice(cases)
@@ -100,6 +105,8 @@ def makeVarAssignment():
             new_case += '"' + random.choice(variables_array) + '"'
         elif keyword == "LIST":
             new_case += makeList()
+        elif keyword == "CONDITION":
+            new_case += makeCondition()
         else:
             new_case += keyword
         new_case += " "
@@ -108,17 +115,19 @@ def makeVarAssignment():
 
 
 def makeStatement():
-    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT"]
+    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT"]
 
     rcase = random.choice(cases)
 
     new_case = ""
     if rcase == "CONDITION":
-        new_case += makeCondition(level=4)
+        new_case += makeCondition()
     elif rcase == "NUMBER":
         new_case += makeNumber()
     elif rcase == "VAR_ASSIGNMENT":
         new_case += makeVarAssignment()
+    elif rcase == "IFSTATEMENT":
+        new_case += makeIfBlock()
 
     while ("  " in new_case):
         new_case = new_case.replace("  ", " ")
@@ -135,14 +144,14 @@ def makeStatement():
     return new_case
 
 
-def makeNumber():
+def makeNumber(level=3):
     cases = [["FLOAT"], ["INTEGER"]]
 
-    if "BASIC_OPERATORS" in concept_arrays:
+    if "BASIC_OPERATORS" in concept_arrays and level > 1:
         cases.append(["NUMBER", "BASIC_OPERATOR", "NUMBER"])
 
-    if "MODULUS_OPERATOR" in concept_arrays:
-        cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_INTEGER"])
+    if "MODULUS_OPERATOR" in concept_arrays and level > 2:
+        cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"])
 
     rcase = random.choice(cases)
 
@@ -155,6 +164,8 @@ def makeNumber():
             new_case += str(int(random.random()*100))
         elif keyword == "SMALL_INTEGER":
             new_case += str(int(random.random()*10))
+        elif keyword == "SMALL_POSITIVE_INTEGER":
+            new_case += str(int(random.random()*9)+1)
         elif keyword == "NUMBER":
             new_case += makeNumber()
         elif keyword == "BASIC_OPERATOR":
@@ -166,8 +177,10 @@ def makeNumber():
     return new_case
 
 
-def makeCondition(level=4):
-    cases = [["True"], ["False"]]
+def makeCondition(level=3):
+    cases = []
+    if level == 2 or level == 1:
+        cases = [["True"], ["False"]]
 
     if "BRACKET" in concept_arrays and level > 1:
         cases.append(["(", "CONDITION", ")"])
@@ -207,6 +220,40 @@ def makeCondition(level=4):
     return 'BUG'
 
 
+def getBiggerBlock(num=2):
+    block = makeBlock(num=2)
+    block = map(lambda x: x.split('\n'), block)
+    block = reduce(lambda x, y: x+y, block)
+    return block
+
+
+def makeIfBlock(level=2):
+    cases = ["IF", "IFELSE"]
+    if level > 1:
+        cases.append("IFELIFSE")
+
+    rcase = random.choice(cases)
+
+    if rcase == "IF":
+        return "if ("+makeCondition(level=1)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock()) + \
+            "\n"
+
+    elif rcase == "IFELSE":
+        return "if ("+makeCondition(level=1)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock()) + \
+            "\nelse:\n\t" + \
+            "\n\t".join(getBiggerBlock())
+
+    elif rcase == "IFELIFSE":
+        return "if ("+makeCondition(level=1)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock()) + \
+            "\nelif ("+makeCondition(level=1)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock()) + \
+            "\nelse:\n\t" + \
+            "\n\t".join(getBiggerBlock())
+
+
 def makeBlock(num=5):
     statements = []
     num_statements = int(random.random()*num)+1
@@ -218,4 +265,7 @@ def makeBlock(num=5):
 for i in makeBlock():
     print i
 
-print variable_map
+print "\n\n"
+
+for var in variable_map:
+    print "print "+var["name"]
