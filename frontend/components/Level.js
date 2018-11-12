@@ -80,9 +80,16 @@ class Level extends React.Component {
      }
 
     // update the streak count (a streak is number of questions user answers correct in a row)
-    let currentStreakCount = this.state.streakCount+1;
-    if( (this.state.previousCorrect || this.state.currentQuestionIndex == 0) && this.state.numAttempts <= 1 ){
+    // (this.state.previousCorrect || this.state.currentQuestionIndex == 0) &&
+    if( this.state.numAttempts <= 1 ){
+      let currentStreakCount = this.state.streakCount+1;
       this.setState({streakCount: currentStreakCount});
+      // mark the level as cleared if the required streak is completed. currently this is a static value of 8
+      if(currentStreakCount >= 5){
+        clearLevel(this.state.level, this.state.stageId);
+      } else {
+        console.log(this.state);
+      }
     }
 
     // update `previousCorrect` if this question was done in a single attempt before moving to the next question
@@ -97,13 +104,6 @@ class Level extends React.Component {
       answerState: null,
       userAnswer: "",
     });
-
-    // mark the level as cleared if the required streak is completed. currently this is a static value of 8
-    if(currentStreakCount >= 2){
-      clearLevel(this.state.level, this.state.stageId);
-    } else {
-      console.log(this.state);
-    }
 
   }
 
@@ -133,7 +133,7 @@ class Level extends React.Component {
         {this.state.questionsLoading ? <div>Loading</div> :
         <Card>
           <CardHeader>
-            <Progress value={(this.state.streakCount/2)*100} color="success">{this.state.streakCount} in a row :)</Progress>
+            <Progress value={(this.state.streakCount/5)*100} color="success">{this.state.streakCount} in a row :)</Progress>
           </CardHeader>
           <CardBody>
               {this.getAnswerStateAlert()}
@@ -146,7 +146,7 @@ class Level extends React.Component {
                 <Button color="primary" size="lg" onClick={() => this.onCheckQuestionBtnClick()}>Check Answer</Button>{' '}
                 <Button color="primary" size="lg" onClick={() => this.onNextQuestionBtnClick()}>Next Question</Button>
               </FormGroup>
-              {this.state.streakCount >= 2 ?
+              {this.state.streakCount >= 5 ?
                 <FormGroup>
                   <Link href={`/stage?id=`+this.state.stageId}>
                     <Button color="success" size="lg" block>Go to Next Level :D</Button>
