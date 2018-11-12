@@ -1,4 +1,3 @@
-
 import random
 import ast
 
@@ -12,10 +11,12 @@ not
 BRACKET
 number
 CONDITIONAL_OPERATOR
+WHILE
 """
 
 concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
-                  "BASIC_OPERATORS", "MODULUS_OPERATOR", "VAR_ASSIGNMENT", "IFELSE"]
+                  "BASIC_OPERATORS", "MODULUS_OPERATOR",
+                  "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
 basic_operators = ["+", "-", "*", "/"]
 modulus_operator = "%"
 conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
@@ -133,8 +134,8 @@ def makeVarAssignment():
 
 
 def makeStatement():
-    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT"]
-    weights = [3, 1, 2, 2]
+    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT", "WHILE"]
+    weights = [3, 1, 2, 2, 4]
     rcase = select(cases, weights)
 
     new_case = ""
@@ -146,6 +147,8 @@ def makeStatement():
         new_case += makeVarAssignment()
     elif rcase == "IFSTATEMENT":
         new_case += makeIfBlock()
+    elif rcase == "WHILE":
+        new_case += makeWhileBlock()
 
     while ("  " in new_case):
         new_case = new_case.replace("  ", " ")
@@ -245,6 +248,10 @@ def getBiggerBlock(num=2):
     block = map(lambda x: x.split('\n'), block)
     block = reduce(lambda x, y: x+y, block)
     return block
+
+def makeWhileBlock(level=2):
+    return "while ("+makeCondition(level=2)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock())
 
 
 def makeIfBlock(level=2):
