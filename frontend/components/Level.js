@@ -123,9 +123,6 @@ class Level extends React.Component {
   }
 
   render() {
-    if(this.state.currentQuestionIndex == null){
-      return <></>
-    }
     return (
       <>
       <Col xs="12" sm="12" md="12" lg="12" xl="12"><h1>Level {this.state.level} ({this.state.stageName})</h1></Col>
