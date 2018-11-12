@@ -1,7 +1,6 @@
 
 import random
 import ast
-from numpy.random import choice
 
 """
 Our current vocab
@@ -54,13 +53,29 @@ def makeString():
     return random.choice(variables_array)
 
 
+def select(container, weights):
+    total_weight = float(sum(weights))
+    rel_weight = [w / total_weight for w in weights]
+
+    # Probability for each element
+    probs = [sum(rel_weight[:i + 1]) for i in range(len(rel_weight))]
+
+    slot = random.random()*1
+    for (i, element) in enumerate(container):
+        if slot <= probs[i]:
+            break
+
+    return element
+
+
 def makeList(level=3):
     cases = ['NUMBER', 'STRING', 'BOOLEAN']
-    weights = [0.3,0.5,0.2]
+
+    weights = [3, 4, 1]
 
     if level > 1:
         cases.append('LIST')
-    rcase = choice(cases,1, p=weights)
+    rcase = select(cases, weights)
 
     new_case = '['
     num_elements = int(random.random()*5)
@@ -89,10 +104,8 @@ def makeVarAssignment():
              ["VARNAME", "=", 'LIST'],
              ["VARNAME", "=", 'CONDITION']
              ]
-
-    weights = [0.1,0.2, 0.1, 0.1, 0.5]
-
-    rcase = choice(cases,1, p=weights)
+    weights = [4, 2, 1, 1, 2]
+    rcase = select(cases, weights)
     new_case = ""
 
     for keyword in rcase:
@@ -121,10 +134,8 @@ def makeVarAssignment():
 
 def makeStatement():
     cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT"]
-    weights = [0.2, 0.1, 0.4, 0.3]
-
-
-    rcase = choice(cases,1, p=weights)
+    weights = [3, 1, 2, 2]
+    rcase = select(cases, weights)
 
     new_case = ""
     if rcase == "CONDITION":
@@ -153,8 +164,7 @@ def makeStatement():
 
 def makeNumber(level=3):
     cases = [["FLOAT"], ["INTEGER"]]
-
-    weights = [0.5, 0.5]
+    weights = [3, 2]
 
     if "BASIC_OPERATORS" in concept_arrays and level > 1:
         cases.append(["NUMBER", "BASIC_OPERATOR", "NUMBER"])
@@ -162,7 +172,7 @@ def makeNumber(level=3):
     if "MODULUS_OPERATOR" in concept_arrays and level > 2:
         cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"])
 
-    rcase = choice(cases,1, p=weights)
+    rcase = select(cases, weights)
 
     new_case = ""
     for keyword in rcase:
@@ -206,7 +216,8 @@ def makeCondition(level=3):
     if "CONDITIONAL_OPERATOR" in concept_arrays and level > 1:
         cases.append(["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"])
 
-    rcase = random.choice(cases)
+    weights = [3, 2, 1, 1, 2, 1]
+    rcase = select(cases, weights)
 
     if len(rcase) == 1:
         return rcase[0]
@@ -238,12 +249,11 @@ def getBiggerBlock(num=2):
 
 def makeIfBlock(level=2):
     cases = ["IF", "IFELSE"]
-    weights = [0.6, 0.4]
 
     if level > 1:
         cases.append("IFELIFSE")
-
-    rcase = choice(cases,1, p=weights)
+    weights = [3, 2]
+    rcase = select(cases, weights)
 
     if rcase == "IF":
         return "if ("+makeCondition(level=1)+") :\n\t" + \
