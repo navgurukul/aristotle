@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { CardDeck, Card, CardTitle, CardBody, CardSubtitle, Col } from 'reactstrap';
-import { getStages, getAllClearedLevels } from '../services/data';
+import { getAllClearedLevels } from '../services/data';
 import axios from 'axios';
 
 class StageList extends React.Component {

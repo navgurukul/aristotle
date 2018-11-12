@@ -2,7 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import Router, { withRouter } from 'next/router';
 import {Col, Card, CardBody, CardHeader, CardTitle, CardSubtitle, CardText, Progress, Input, Button, Form, FormGroup, Alert} from 'reactstrap';
-import { getStageById, getQuestions, clearLevel } from '../services/data';
+import { clearLevel } from '../services/data';
+import axios from 'axios';
 
 class Level extends React.Component {
 
@@ -19,17 +20,30 @@ class Level extends React.Component {
       streakCount: 0,
       previousCorrect: false,
       numAttempts: 0,
+      questionsLoading: true,
     }
   }
 
+  getMoreQuestions() {
+    axios.get("http://localhost:5000/stages/"+this.state.stageId+"/level/"+this.state.level+"/random_questions")
+      .then((response) => {
+        let questions = response.data;
+        let stateQuestions = this.state.questions;
+        stateQuestions = stateQuestions.concat(questions);
+        this.setState({questions: stateQuestions, questionsLoading: false});
+      })
+  }
+
   componentDidMount() {
-    let stage = getStageById(this.state.stageId);
-    let questions = getQuestions(this.state.level, this.state.stageId).questions;
-    this.setState({
-      stageName: stage.name,
-      questions: questions,
-      currentQuestionIndex: 0
-    });
+    axios.get("http://localhost:5000/stages/"+this.state.stageId)
+      .then((response) => {
+        let stage = response.data.stage;
+        this.setState({
+          stageName: stage.name,
+          currentQuestionIndex: 0
+        })
+        this.getMoreQuestions();
+      })
   }
 
   onCheckQuestionBtnClick() {
@@ -60,11 +74,9 @@ class Level extends React.Component {
       return;
     }
     // if we only have 3 or less questions left in the questions array then fetch more questions from the service
-    if(this.state.questions.length - this.currentQuestionIndex <= 3){
-      let newQuestions = getQuestions(this.state.level, this.state.stageId);
-      let questions = this.state.questions;
-      questions = questions.concat(newQuestions);
-      this.setState({questions: questions});
+    if(this.state.questions.length - (this.state.currentQuestionIndex+1) <= 3){
+      this.setState({questionsLoading: true});
+      this.getMoreQuestions();
      }
 
     // update the streak count (a streak is number of questions user answers correct in a row)
@@ -89,7 +101,6 @@ class Level extends React.Component {
     // mark the level as cleared if the required streak is completed. currently this is a static value of 8
     if(currentStreakCount >= 2){
       clearLevel(this.state.level, this.state.stageId);
-      console.log("here it is");
     } else {
       console.log(this.state);
     }
@@ -119,6 +130,7 @@ class Level extends React.Component {
       <>
       <Col xs="12" sm="12" md="12" lg="12" xl="12"><h1>Level {this.state.level} ({this.state.stageName})</h1></Col>
       <Col xs="12" sm="12" md="12" lg="12" xl="12">
+        {this.state.questionsLoading ? <div>Loading</div> :
         <Card>
           <CardHeader>
             <Progress value={(this.state.streakCount/2)*100} color="success">{this.state.streakCount} in a row :)</Progress>
@@ -143,7 +155,7 @@ class Level extends React.Component {
               : null}
             </Form>
           </CardBody>
-        </Card>
+        </Card>}
       </Col>
       </>
     )

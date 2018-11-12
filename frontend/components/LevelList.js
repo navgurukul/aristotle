@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { CardDeck, Card, CardTitle, CardBody, CardSubtitle, CardText, Col, Row } from 'reactstrap';
-import { getStageById, isLevelClear, getAllClearedLevels } from '../services/data';
+import { isLevelClear, getAllClearedLevels } from '../services/data';
 import * as queryString from 'query-string';
 import * as classNames from 'classnames';
 import Octicon from 'react-component-octicons';
