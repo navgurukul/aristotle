@@ -1,10 +1,12 @@
 from flask import Flask
 from flask_restplus import Api
+from flask_cors import CORS
 
 from backend.src.config import ShakuntlaDeviConfig
 
 # Initialising the Flask-App
 app = Flask(__name__)
+CORS(app)
 config = ShakuntlaDeviConfig.get_config()
 app.config.from_object(config)
 
