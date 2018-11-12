@@ -14,9 +14,6 @@ class StageList extends React.Component {
   }
 
   componentDidMount() {
-    const stages = getStages();
-    this.setState({ 'stages': stages['stages'] });
-
     axios.get("http://localhost:5000/stages")
       .then((response) => {
         let stages = response.data.data;
