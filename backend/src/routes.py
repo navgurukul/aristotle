@@ -30,15 +30,14 @@ class Stage(Resource):
         else:
             return {'stage': searchedStages[0]}
 
-@api.route("/stages/<stage_id>/level")
-class LevelsList(Resource):
-
-    def get(self, stage_id):
-        return {'data': 'list of levels of given stage'}
-
-
 @api.route("/stages/<stage_id>/level/<level_id>/random_questions")
 class LevelRandomQuestionList(Resource):
 
     def get(self, stage_id, level_id):
-        return {'data': 'list of random questions of given level'}
+        #TODO: @Abhishek/@Shivam: Yahan on basis of stage and level a random list of 10 questions needs to be generated
+        #TODO: The stages are listed in `data/stages.json`. You can edit the stages and number of levels per stage from there.
+        questions_file = open("data/questions.json")
+        questions = json.loads(questions_file.read())
+        questions = questions['questions']
+
+        return questions
