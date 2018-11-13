@@ -1,5 +1,4 @@
 import random
-import ast
 
 """
 Our current vocab
@@ -17,6 +16,7 @@ WHILE
 concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
                   "BASIC_OPERATORS", "MODULUS_OPERATOR",
                   "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
+
 basic_operators = ["+", "-", "*", "/"]
 modulus_operator = "%"
 conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
@@ -35,6 +35,7 @@ variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", 
 # STATEMENT => CONDITION
 # STATEMENT => NUMBER
 # STATEMENT => VAR = NUMBER | BOOLEAN | STRING | LIST (VAR_ASSIGNMENT)
+# STATEMENT => print VAR
 # STORE THIS VARIABLE IN THE VARIABLE MAP
 # LIST => [ NUMBER ]
 #         [ BOOLEAN ],
@@ -76,10 +77,14 @@ def makeList(level=3):
 
     if level > 1:
         cases.append('LIST')
+        # TODO ERROR - SHIFT To a dictionary list to accomodate weights
     rcase = select(cases, weights)
 
     new_case = '['
     num_elements = int(random.random()*5)
+
+    if num_elements == 0:
+        return "[]"
 
     for i in range(num_elements):
         if rcase == 'NUMBER':
@@ -97,6 +102,25 @@ def makeList(level=3):
     new_case += ']'
     return new_case
 
+def makeConstant(level=2):
+    cases = ['NUMBER', 'STRING', 'BOOLEAN', "LIST"]
+    weights = [3, 4, 1, 3]
+
+    #TDOD - MAKE A FUNCTION TO FIND INTERSECTION OF CASES WITH CONCEPT_ARRAY INPUT TO CREATE A NEW CASE ARRAY
+
+    rcase = select(cases, weights)
+
+    if rcase == 'NUMBER':
+        new_case = makeNumber()
+    elif rcase == 'STRING':
+        new_case = makeString()
+    elif rcase == 'BOOLEAN':
+        bool_val = str(makeBoolean())
+        new_case = bool_val
+    elif rcase == 'LIST':
+        new_case = makeList(2)
+
+    return new_case
 
 def makeVarAssignment():
     cases = [["VARNAME", "=", 'NUMBER'],
@@ -132,13 +156,19 @@ def makeVarAssignment():
 
     return new_case
 
+def makePrintStatement():
+    if (len(variable_map)):
+        return "print " + random.choice(variable_map)["name"]
+    return "print " + makeConstant()
 
 def makeStatement():
-    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT", "WHILE"]
-    weights = [3, 1, 2, 2, 4]
+    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT", "WHILE", "PRINT_STATEMENT"]
+    weights = [3, 1, 2, 2, 4, 5]
     rcase = select(cases, weights)
 
     new_case = ""
+
+    # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
     if rcase == "CONDITION":
         new_case += makeCondition()
     elif rcase == "NUMBER":
@@ -149,7 +179,10 @@ def makeStatement():
         new_case += makeIfBlock()
     elif rcase == "WHILE":
         new_case += makeWhileBlock()
+    elif rcase == "PRINT_STATEMENT":
+        new_case += makePrintStatement()
 
+    #TODO - DO THIS WITH REGEX INSTEAD
     while ("  " in new_case):
         new_case = new_case.replace("  ", " ")
 
@@ -158,6 +191,12 @@ def makeStatement():
 
     while (" )" in new_case):
         new_case = new_case.replace(" )", ")")
+
+    while ("[ " in new_case):
+        new_case = new_case.replace("[ ", "[")
+
+    while (" ]" in new_case):
+        new_case = new_case.replace(" ]", "]")
 
     if new_case.startswith(" "):
         new_case = new_case[1:]
@@ -285,7 +324,7 @@ def makeIfBlock(level=2):
 def makeBlock(num=5):
     statements = []
     num_statements = int(random.random()*num)+1
-    for i in range(num_statements):
+    for _ in range(num_statements):
         statements.append(makeStatement())
     return statements
 
