@@ -1,11 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { CardDeck, Card, CardTitle, CardBody, CardSubtitle, CardText, Col, Row } from 'reactstrap';
-import { getStageById, isLevelClear, getAllClearedLevels } from '../services/data';
+import { isLevelClear, getAllClearedLevels } from '../services/data';
 import * as queryString from 'query-string';
 import * as classNames from 'classnames';
 import Octicon from 'react-component-octicons';
 import Router from 'next/router';
+import axios from 'axios';
 
 class LevelList extends React.Component {
 
@@ -14,25 +15,33 @@ class LevelList extends React.Component {
     this.state = {
       stageId: props.stageId,
       totalLevels: 0,
-      nextLevelToClear: null
+      nextLevelToClear: null,
+      name: null
     }
   }
 
   componentDidMount() {
-    let stage = getStageById(this.state.stageId);
-    this.setState({ 'totalLevels': stage.totalLevels });
-    // compute which is the immediate next level user needs to complete
-    // this is the (last level cleared) + 1
-    let allClearedLevels = getAllClearedLevels(this.state.stageId);
-    allClearedLevels = allClearedLevels.map((value, key)=>{
-      return Number(value)
-    });
-    let maxLevelCleared = 0;
-    if(allClearedLevels.length > 0){
-      maxLevelCleared = Math.max.apply(null, allClearedLevels);
-    }
-    let nextLevelToClear = maxLevelCleared + 1;
-    this.setState({nextLevelToClear: nextLevelToClear});
+    axios.get("http://localhost:5000/stages/"+this.state.stageId)
+      .then((response) => {
+        // object returned by the API
+        let stage = response.data.stage;
+        // compute which is the immediate next level user needs to complete
+        // this is the (last level cleared) + 1
+        let allClearedLevels = getAllClearedLevels(this.state.stageId);
+        allClearedLevels = allClearedLevels.map((value, key)=>{
+          return Number(value)
+        });
+        let maxLevelCleared = 0;
+        if(allClearedLevels.length > 0){
+          maxLevelCleared = Math.max.apply(null, allClearedLevels);
+        }
+        let nextLevelToClear = maxLevelCleared + 1;
+
+        this.setState({
+          nextLevelToClear: nextLevelToClear,
+          ...stage
+        });
+      })
   }
 
   onLevelCardClick(level) {

@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { CardDeck, Card, CardTitle, CardBody, CardSubtitle, Col } from 'reactstrap';
-import { getStages, getAllClearedLevels } from '../services/data';
+import { getAllClearedLevels } from '../services/data';
+import axios from 'axios';
 
 class StageList extends React.Component {
 
@@ -13,8 +14,11 @@ class StageList extends React.Component {
   }
 
   componentDidMount() {
-    const stages = getStages();
-    this.setState({ 'stages': stages['stages'] });
+    axios.get("http://localhost:5000/stages")
+      .then((response) => {
+        let stages = response.data.data;
+        this.setState({'stages': stages});
+      })
   }
 
   getClearedLevelCount(stageId) {
@@ -29,7 +33,7 @@ class StageList extends React.Component {
           <Link href={`/stage?id=`+value.id} key={value.id}>
             <Card style={{'marginBottom': '10px'}}>
               <CardBody>
-                <CardTitle>Stage {value.order} ({this.getClearedLevelCount(value.id)}/{value.totalLevels})</CardTitle>
+                <CardTitle>Stage {key+1} ({this.getClearedLevelCount(value.id)}/{value.totalLevels})</CardTitle>
                 <CardSubtitle>{value.name}</CardSubtitle>
               </CardBody>
             </Card>

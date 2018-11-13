@@ -1,0 +1,44 @@
+{
+  "stages": [
+    {
+      "totalLevels": 5,
+      "name": "Booleans",
+      "id": "booleans"
+    },
+    {
+      "totalLevels": 5,
+      "name": "If Conditions",
+      "id": "if-conditions"
+    },
+    {
+      "totalLevels": 5,
+      "name": "Modulous",
+      "id": "mod"
+    },
+    {
+      "totalLevels": 5,
+      "name": "Math Operators",
+      "id": "math-op"
+    },
+    {
+      "totalLevels": 5,
+      "name": "If/Else in Depth",
+      "id": "if-else-depth"
+    },
+    {
+      "totalLevels": 5,
+      "name": "While Loops",
+      "id": "while-loops"
+    },
+    {
+      "totalLevels": 5,
+      "name": "For Loops",
+      "id": "for-loops"
+    },
+    {
+      "totalLevels": 5,
+      "name": "Functions",
+      "id": "functions"
+    }
+  ]
+}
