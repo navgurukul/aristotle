@@ -6,7 +6,7 @@ import * as queryString from 'query-string';
 import * as classNames from 'classnames';
 import Octicon from 'react-component-octicons';
 import Router from 'next/router';
-import axios from 'axios';
+import { fetchApi } from '../services/api';
 
 class LevelList extends React.Component {
 
@@ -21,7 +21,7 @@ class LevelList extends React.Component {
   }
 
   componentDidMount() {
-    axios.get("http://localhost:5000/stages/"+this.state.stageId)
+    fetchApi("/stages/"+this.state.stageId, {}, {}, 'GET')
       .then((response) => {
         // object returned by the API
         let stage = response.data.stage;

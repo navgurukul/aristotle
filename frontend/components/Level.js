@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Router, { withRouter } from 'next/router';
 import {Col, Card, CardBody, CardHeader, CardTitle, CardSubtitle, CardText, Progress, Input, Button, Form, FormGroup, Alert} from 'reactstrap';
 import { clearLevel } from '../services/data';
-import axios from 'axios';
+import { fetchApi } from '../services/api';
 
 class Level extends React.Component {
 
@@ -25,7 +25,7 @@ class Level extends React.Component {
   }
 
   getMoreQuestions() {
-    axios.get("http://localhost:5000/stages/"+this.state.stageId+"/level/"+this.state.level+"/random_questions")
+    fetchApi("/stages/"+this.state.stageId+"/level/"+this.state.level+"/random_questions", {}, {}, 'GET')
       .then((response) => {
         let questions = response.data;
         let stateQuestions = this.state.questions;
@@ -35,7 +35,7 @@ class Level extends React.Component {
   }
 
   componentDidMount() {
-    axios.get("http://localhost:5000/stages/"+this.state.stageId)
+    fetchApi("/stages/"+this.state.stageId, {}, {}, 'GET')
       .then((response) => {
         let stage = response.data.stage;
         this.setState({

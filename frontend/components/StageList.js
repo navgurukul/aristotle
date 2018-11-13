@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { CardDeck, Card, CardTitle, CardBody, CardSubtitle, Col } from 'reactstrap';
 import { getAllClearedLevels } from '../services/data';
 import axios from 'axios';
+import { fetchApi } from '../services/api';
+
 
 class StageList extends React.Component {
 
@@ -14,7 +16,7 @@ class StageList extends React.Component {
   }
 
   componentDidMount() {
-    axios.get("http://localhost:5000/stages")
+    fetchApi("/stages", {}, {}, 'GET')
       .then((response) => {
         let stages = response.data.data;
         this.setState({'stages': stages});
