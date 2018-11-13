@@ -54,7 +54,7 @@ def makeString():
     return random.choice(variables_array)
 
 
-def select(container, weights):
+def selectWeightedRandom(container, weights):
     total_weight = float(sum(weights))
     rel_weight = [w / total_weight for w in weights]
 
@@ -69,14 +69,24 @@ def select(container, weights):
     return element
 
 
-def makeList(level=3):
-    cases = ['NUMBER', 'STRING', 'BOOLEAN']
+def prepareForWeightedSelection(selectionList):
+    cases = []
+    weights = []
+    for obj in selectionList:
+        cases.append(obj['name'])
+        weights.append(obj['weight'])
 
-    weights = [3, 4, 1]
+    return selectWeightedRandom(cases, weights)
+
+
+def makeList(level=3):
+    casesWithWeights = [{"name": "NUMBER", "weight": 3}, {
+        "name": "STRING", "weight": 4}, {"name": "BOOLEAN", "weight": 1}]
 
     if level > 1:
-        cases.append('LIST')
-    rcase = select(cases, weights)
+        casesWithWeights.append({"name": 'LIST', "weight": 2})
+
+    rcase = prepareForWeightedSelection(casesWithWeights)
 
     new_case = '['
     num_elements = int(random.random()*5)
@@ -99,14 +109,11 @@ def makeList(level=3):
 
 
 def makeVarAssignment():
-    cases = [["VARNAME", "=", 'NUMBER'],
-             ["VARNAME", "=", 'STRING'],
-             ["VARNAME", "=", 'BOOLEAN'],
-             ["VARNAME", "=", 'LIST'],
-             ["VARNAME", "=", 'CONDITION']
-             ]
-    weights = [4, 2, 1, 1, 2]
-    rcase = select(cases, weights)
+    casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4}, {
+        "name": ["VARNAME", "=", 'STRING'], "weight": 2}, {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1}, {"name": ["VARNAME", "=", 'LIST'], "weight": 1}, {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2}]
+
+    rcase = prepareForWeightedSelection(casesWithWeights)
+
     new_case = ""
 
     for keyword in rcase:
@@ -134,9 +141,10 @@ def makeVarAssignment():
 
 
 def makeStatement():
-    cases = ['CONDITION', 'NUMBER', "VAR_ASSIGNMENT", "IFSTATEMENT", "WHILE"]
-    weights = [3, 1, 2, 2, 4]
-    rcase = select(cases, weights)
+    casesWithWeights = [{"name": 'CONDITION', "weight": 3}, {
+        "name": 'NUMBER', "weight": 1}, {"name": 'VAR_ASSIGNMENT', "weight": 2}, {"name": 'IFSTATEMENT', "weight": 2}, {"name": 'WHILE', "weight": 4}]
+
+    rcase = prepareForWeightedSelection(casesWithWeights)
 
     new_case = ""
     if rcase == "CONDITION":
@@ -166,16 +174,18 @@ def makeStatement():
 
 
 def makeNumber(level=3):
-    cases = [["FLOAT"], ["INTEGER"]]
-    weights = [3, 2]
+    casesWithWeights = [{"name": ["FLOAT"], "weight": 3},
+                        {"name": ["INTEGER"], "weight": 1}]
 
     if "BASIC_OPERATORS" in concept_arrays and level > 1:
-        cases.append(["NUMBER", "BASIC_OPERATOR", "NUMBER"])
+        casesWithWeights.append(
+            {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
 
     if "MODULUS_OPERATOR" in concept_arrays and level > 2:
-        cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"])
+        casesWithWeights.append(
+            {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
 
-    rcase = select(cases, weights)
+    rcase = prepareForWeightedSelection(casesWithWeights)
 
     new_case = ""
     for keyword in rcase:
@@ -200,27 +210,30 @@ def makeNumber(level=3):
 
 
 def makeCondition(level=3):
-    cases = []
+    casesWithWeights = []
     if level == 2 or level == 1:
-        cases = [["True"], ["False"]]
+        casesWithWeights.append({"name": "True", "weight": 2})
+        casesWithWeights.append({"name": "False", "weight": 1})
 
     if "BRACKET" in concept_arrays and level > 1:
-        cases.append(["(", "CONDITION", ")"])
+        casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2})
 
     if "and" in concept_arrays and level > 1:
-        cases.append(["CONDITION", "and", "CONDITION"])
+        casesWithWeights.append(
+            {"name": ["CONDITION", "and", "CONDITION"], "weight": 4})
 
     if "or" in concept_arrays and level > 1:
-        cases.append(["CONDITION", "or", "CONDITION"])
+        casesWithWeights.append(
+            {"name": ["CONDITION", "or", "CONDITION"], "weight": 3})
 
     if "not" in concept_arrays and level > 1:
-        cases.append(["not", "CONDITION"])
+        casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1})
 
     if "CONDITIONAL_OPERATOR" in concept_arrays and level > 1:
-        cases.append(["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"])
+        casesWithWeights.append(
+            {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5})
 
-    weights = [3, 2, 1, 1, 2, 1]
-    rcase = select(cases, weights)
+    rcase = prepareForWeightedSelection(casesWithWeights)
 
     if len(rcase) == 1:
         return rcase[0]
@@ -249,18 +262,20 @@ def getBiggerBlock(num=2):
     block = reduce(lambda x, y: x+y, block)
     return block
 
+
 def makeWhileBlock(level=2):
     return "while ("+makeCondition(level=2)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock())
+        "\n\t".join(getBiggerBlock())
 
 
 def makeIfBlock(level=2):
-    cases = ["IF", "IFELSE"]
+    casesWithWeights = [{"name": "IF", "weight": 3}, {
+        "name": "IFELSE", "weight": 2}]
 
     if level > 1:
-        cases.append("IFELIFSE")
-    weights = [3, 2]
-    rcase = select(cases, weights)
+        casesWithWeights.append({"name": "IFELIFSE", "weight": 2})
+
+    rcase = prepareForWeightedSelection(casesWithWeights)
 
     if rcase == "IF":
         return "if ("+makeCondition(level=1)+") :\n\t" + \
