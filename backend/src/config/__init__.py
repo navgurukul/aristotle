@@ -38,13 +38,13 @@ class ShakuntlaDeviConfig(object):
 
         # get the required config as per environment variable
         if mode == "PRODUCTION":
-            from backend.src.config.production import ProductionConfig
+            from .production import ProductionConfig
             Config = ProductionConfig
         elif mode == "STAGING":
-            from backend.src.config.staging import StagingConfig
+            from .staging import StagingConfig
             Config = StagingConfig
         else:
-            from backend.src.config.development import DevelopmentConfig
+            from .development import DevelopmentConfig
             Config = DevelopmentConfig
 
         # check if the imported class is an instance of ShakuntlaDeviConfig

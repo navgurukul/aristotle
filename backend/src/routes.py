@@ -2,7 +2,7 @@ import json
 
 from flask_restplus import Resource
 
-from backend.src import api
+from src import api
 
 @api.route("/stages")
 class StagesList(Resource):
