@@ -1,5 +1,4 @@
 import random
-
 """
 Our current vocab
 
@@ -13,47 +12,28 @@ CONDITIONAL_OPERATOR
 WHILE
 """
 
-concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
-                  "BASIC_OPERATORS", "MODULUS_OPERATOR",
+GLEVEL = 0
+CONCEPT_ARRAYS = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
+                  "BASIC_OOPERATORS", "MODULUS_OPERATOR",
                   "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
 
-basic_operators = ["+", "-", "*", "/"]
-modulus_operator = "%"
-conditional_operators = ["==", "!=", "<", ">", ">=", "<="]
-boolean_values = ["True", "False"]
+BASIC_OOPERATORS = ["+", "-", "*", "/"]
+MODULUS_OPERATOR = "%"
+CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
+BOOLEAN_VALUES = ["True", "False"]
+VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
+                   "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
+INDEX_VARIABLES_NAMES = ["ctr", "index", "i", "n"]
 
 # Kaun kaun se variables, kis type se define kiye hai
 # [{name: "shivam", type: "bool"}]
-
 variable_map = []
 
-
-variables_array = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
-                   "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
-
-# BLOCKS => LIST OF STATEMENTS (Random length upto say 5 )
-# STATEMENT => CONDITION
-# STATEMENT => NUMBER
-# STATEMENT => VAR = NUMBER | BOOLEAN | STRING | LIST (VAR_ASSIGNMENT)
-# STATEMENT => print VAR
-# STORE THIS VARIABLE IN THE VARIABLE MAP
-# LIST => [ NUMBER ]
-#         [ BOOLEAN ],
-#         [ STRING ]
-#          [LIST ]
-# USE A LONG LIST OF GOOD VARIABLE NAMES IN variable_names.json snakeCase
-# READ http://saral.navgurukul.org/course?id=18&slug=python__variables%2Fvariables-naming-conventions before defining variable names - have a mix of two names
-
-
 def makeBoolean():
-    if random.random() > 0.5:
-        return True
-    return False
-
+    return random.choice(BOOLEAN_VALUES)
 
 def makeString():
-    return random.choice(variables_array)
-
+    return '"' + random.choice(VARIABLES_ARRAY) + '"'
 
 def select(container, weights):
     total_weight = float(sum(weights))
@@ -135,7 +115,7 @@ def makeVarAssignment():
 
     for keyword in rcase:
         if keyword == "VARNAME":
-            var_name = random.choice(variables_array)
+            var_name = random.choice(VARIABLES_ARRAY)
             new_case += var_name
             dic = {"name": var_name, "type": rcase[2]}  # MAKE THIS GENERIC
             variable_map.append(dic)
@@ -143,9 +123,9 @@ def makeVarAssignment():
         elif keyword == "NUMBER":
             new_case += makeNumber()
         elif keyword == "BOOLEAN":
-            new_case += random.choice(boolean_values)
+            new_case += makeBoolean()
         elif keyword == "STRING":
-            new_case += '"' + random.choice(variables_array) + '"'
+            new_case += makeString()
         elif keyword == "LIST":
             new_case += makeList()
         elif keyword == "CONDITION":
@@ -203,15 +183,20 @@ def makeStatement():
 
     return new_case
 
+def makeSmallInteger():
+    return str(int(random.random()*10))
+
+def makeSmallPositiveInteger():
+    return str(int(random.random()*9)+1)
 
 def makeNumber(level=3):
     cases = [["FLOAT"], ["INTEGER"]]
     weights = [3, 2]
 
-    if "BASIC_OPERATORS" in concept_arrays and level > 1:
+    if "BASIC_OOPERATORS" in CONCEPT_ARRAYS and level > 1:
         cases.append(["NUMBER", "BASIC_OPERATOR", "NUMBER"])
 
-    if "MODULUS_OPERATOR" in concept_arrays and level > 2:
+    if "MODULUS_OPERATOR" in CONCEPT_ARRAYS and level > 2:
         cases.append(["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"])
 
     rcase = select(cases, weights)
@@ -224,15 +209,15 @@ def makeNumber(level=3):
         elif keyword == "INTEGER":
             new_case += str(int(random.random()*100))
         elif keyword == "SMALL_INTEGER":
-            new_case += str(int(random.random()*10))
+            new_case += makeSmallInteger()
         elif keyword == "SMALL_POSITIVE_INTEGER":
-            new_case += str(int(random.random()*9)+1)
+            new_case += makeSmallPositiveInteger()
         elif keyword == "NUMBER":
             new_case += makeNumber()
         elif keyword == "BASIC_OPERATOR":
-            new_case += random.choice(basic_operators)
+            new_case += random.choice(BASIC_OOPERATORS)
         else:
-            new_case += modulus_operator
+            new_case += MODULUS_OPERATOR
         new_case += " "
 
     return new_case
@@ -243,19 +228,19 @@ def makeCondition(level=3):
     if level == 2 or level == 1:
         cases = [["True"], ["False"]]
 
-    if "BRACKET" in concept_arrays and level > 1:
+    if "BRACKET" in CONCEPT_ARRAYS and level > 1:
         cases.append(["(", "CONDITION", ")"])
 
-    if "and" in concept_arrays and level > 1:
+    if "and" in CONCEPT_ARRAYS and level > 1:
         cases.append(["CONDITION", "and", "CONDITION"])
 
-    if "or" in concept_arrays and level > 1:
+    if "or" in CONCEPT_ARRAYS and level > 1:
         cases.append(["CONDITION", "or", "CONDITION"])
 
-    if "not" in concept_arrays and level > 1:
+    if "not" in CONCEPT_ARRAYS and level > 1:
         cases.append(["not", "CONDITION"])
 
-    if "CONDITIONAL_OPERATOR" in concept_arrays and level > 1:
+    if "CONDITIONAL_OPERATOR" in CONCEPT_ARRAYS and level > 1:
         cases.append(["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"])
 
     weights = [3, 2, 1, 1, 2, 1]
@@ -272,7 +257,7 @@ def makeCondition(level=3):
             elif keyword == "NUMBER":
                 new_case += makeNumber()
             elif keyword == "CONDITIONAL_OPERATOR":
-                new_case += random.choice(conditional_operators)
+                new_case += random.choice(CONDITIONAL_OPERATORS)
             else:
                 new_case += keyword
             new_case += " "
@@ -288,10 +273,19 @@ def getBiggerBlock(num=2):
     block = reduce(lambda x, y: x+y, block)
     return block
 
-def makeWhileBlock(level=2):
-    return "while ("+makeCondition(level=2)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock())
+def makeWhileCondition(index_variable):
+    condition = index_variable + " " + random.choice(["<", "<=", "!="]) + " " + makeSmallInteger()
+    return condition
 
+def incrementCondition(index_variable):
+    return random.choice([index_variable + " += 1", index_variable + " = " + index_variable + " + 1"])
+
+def makeWhileBlock(level=2):
+    index_variable = random.choice(INDEX_VARIABLES_NAMES)
+
+    return "while ("+makeWhileCondition(index_variable)+") :\n\t" + \
+            "\n\t".join(getBiggerBlock()) + \
+            "\n\t" + incrementCondition(index_variable)
 
 def makeIfBlock(level=2):
     cases = ["IF", "IFELSE"]
