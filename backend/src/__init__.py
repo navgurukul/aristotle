@@ -2,7 +2,7 @@ from flask import Flask
 from flask_restplus import Api
 from flask_cors import CORS
 
-from backend.src.config import ShakuntlaDeviConfig
+from .config import ShakuntlaDeviConfig
 
 # Initialising the Flask-App
 app = Flask(__name__)
@@ -17,4 +17,4 @@ else:
     api = Api(app, doc=False, specs=False)
 
 # Import all Routes
-from backend.src.routes import *
+from .routes import *
