@@ -13,8 +13,8 @@ WHILE
 """
 
 GLEVEL = 0
-CONCEPT_ARRAYS = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
-                  "BASIC_OOPERATORS", "MODULUS_OPERATOR",
+CONCEPT_ARRAYS =  ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
+                  "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
                   "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
 
 BASIC_OOPERATORS = ["+", "-", "*", "/"]
@@ -201,27 +201,27 @@ def makeNumber(level=3):
     casesWithWeights = [{"name": ["FLOAT"], "weight": 3},
                         {"name": ["INTEGER"], "weight": 1}]
 
-    # if "BASIC_OPERATORS" in concept_arrays and level > 1:
-    #     casesWithWeights.append([
-    #             {"name": "NUMBER", "weight": 3}, \
-    #             {"name": "BASIC_OPERATOR", "weight": 3}, \
-    #             {"name": "NUMBER", "weight": 3}
-    #         ])
-
-    # if "MODULUS_OPERATOR" in concept_arrays and level > 2:
-    #     casesWithWeights.append([
-    #         {"name": "INTEGER", "weight": 3}, \
-    #         {"name": "MODULUS_OPERATOR", "weight": 3}, \
-    #         {"name": "SMALL_POSITIVE_INTEGER", "weight": 3}
-    #     ])
-
     if "BASIC_OPERATORS" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append(
-            {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
+        casesWithWeights += [
+                {"name": "NUMBER", "weight": 3}, \
+                {"name": "BASIC_OPERATOR", "weight": 3}, \
+                {"name": "NUMBER", "weight": 3}
+        ]
 
     if "MODULUS_OPERATOR" in CONCEPT_ARRAYS and level > 2:
-        casesWithWeights.append(
-            {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
+        casesWithWeights += [
+            {"name": "INTEGER", "weight": 3}, \
+            {"name": "MODULUS_OPERATOR", "weight": 3}, \
+            {"name": "SMALL_POSITIVE_INTEGER", "weight": 3}
+        ]
+
+    # if "BASIC_OPERATORS" in CONCEPT_ARRAYS and level > 1:
+    #     casesWithWeights.append(
+    #         {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
+
+    # if "MODULUS_OPERATOR" in CONCEPT_ARRAYS and level > 2:
+    #     casesWithWeights.append(
+    #         {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
 
     rcase = prepareForWeightedSelection(casesWithWeights)
 
@@ -350,11 +350,16 @@ def makeBlock(num=5):
         statements.append(makeStatement())
     return statements
 
+def generateCode(concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
+                  "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
+                  "VAR_ASSIGNMENT", "IFELSE", "WHILE"]):
+                
+    # CONCEPT_ARRAYS = concept_arrays
+    for i in makeBlock():
+        print i
 
-for i in makeBlock():
-    print i
+    for var in variable_map:
+        print "print "+var["name"]
 
-print "\n\n"
-
-for var in variable_map:
-    print "print "+var["name"]
+if __name__ == "__main__":
+    generateCode()
