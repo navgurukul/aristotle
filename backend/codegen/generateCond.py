@@ -1,16 +1,4 @@
 import random
-"""
-Our current vocab
-
-CONDITION
-and
-or
-not
-BRACKET
-number
-CONDITIONAL_OPERATOR
-WHILE
-"""
 
 class CodeGenerator:
     GLEVEL = 0
@@ -19,8 +7,9 @@ class CodeGenerator:
     MODULUS_OPERATOR = "%"
     CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
     BOOLEAN_VALUES = ["True", "False"]
-    VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
-                    "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
+    VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau",
+                        "holySee", "koreaSouth", "newZealand", "palestinianTerritories", "sanMarino", 
+                        "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
     INDEX_VARIABLES_NAMES = ["ctr", "index", "i", "n"]
 
     CONCEPT_ARRAYS = []
@@ -30,12 +19,53 @@ class CodeGenerator:
     variable_map = []
 
     def __init__(self):
-        self.CONCEPT_ARRAYS = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
-                  "BASIC_OOPERATORS", "MODULUS_OPERATOR",
-                  "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
+        self.CONCEPT_ARRAYS = [ "PRINT", \
+                    "INTEGER", "FLOAT", "STRING", "BOOLEAN",  "LIST", \
+                    "CONDITION", \
+                    "BASIC_OOPERATORS", "MODULUS_OPERATOR", "CONDITIONAL_OPERATOR", \
+                    "BRACKET", "AND", "OR", "NOT", \
+                    "VARIABLE", "WHILE", \
+                    "IF", "IFELSE", "IFELIFSE" ]
+        self.sanitiseConceptArrays()
+
+    def sanitiseConceptArrays(self):
+        data = [
+            {
+                "ifThere": ["WHILE"],
+                "shouldBeThere": ["CONDITIONAL_OPERATOR", "IF"]
+            }, {
+                "ifThere": ["IF"],
+                "shouldBeThere": ["CONDITIONAL_OPERATOR"]
+            }, {
+                "ifThere": ["INTEGER", "FLOAT"],
+                "shouldBeThere": ["NUMBER"]
+            }, {
+                "ifThere": ["CONDITIONAL_OPERATOR", "CONDITION"],
+                "shouldBeThere": ["CONDITION", "NUMBER", "BOOLEAN", "BRACKET"]
+            }, {
+                "ifThere": ["NUMBER"],
+                "shouldBeThere": ["FLOAT", "INTEGER"]
+            }, {
+                "ifThere": ["BOOLEAN_OPERATORS"],
+                "shouldBeThere": ["AND", "OR", "NOT", "BOOLEAN", "CONDITION", "BRACKET"]
+            }
+        ]
+        for d in data:
+            for m in d["ifThere"]:
+                if m in self.CONCEPT_ARRAYS:
+                    for n in d["shouldBeThere"]:
+                        if n not in self.CONCEPT_ARRAYS:
+                            self.CONCEPT_ARRAYS.append(n)
+        
+        if "VARIABLE" not in self.CONCEPT_ARRAYS:
+            self.CONCEPT_ARRAYS.append("VARIABLE")
+
+        if "PRINT" not in self.CONCEPT_ARRAYS:
+            self.CONCEPT_ARRAYS.append("PRINT")
 
     def setConceptArray(self, concept_array):
         self.CONCEPT_ARRAYS = concept_array
+        self.sanitiseConceptArrays()
 
     def makeBoolean(self):
         return random.choice(self.BOOLEAN_VALUES)
@@ -67,13 +97,28 @@ class CodeGenerator:
 
         return self.selectWeightedRandom(cases, weights)
 
+    def validCases(self, cases):
+        ncases = []
+
+        for case in cases:
+            if "concept" in case.keys():
+                if case['concept'] in self.CONCEPT_ARRAYS:
+                    ncases.append(case)
+
+            if case['name'] in self.CONCEPT_ARRAYS:
+                ncases.append(case)
+        
+        return ncases
 
     def makeList(self, level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
                             {"name": "STRING", "weight": 4},
                             {"name": "BOOLEAN", "weight": 1}]):
 
+        casesWithWeights = self.validCases(casesWithWeights)
+
         if level > 1:
             casesWithWeights.append({"name": 'LIST', "weight": 2})
+            casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
@@ -111,7 +156,7 @@ class CodeGenerator:
                             {"name": "BOOLEAN", "weight": 1},
                             {"name": "LIST", "weight": 3}]
 
-        #TDOD - MAKE A FUNCTION TO FIND INTERSECTION OF CASES WITH CONCEPT_ARRAY INPUT TO CREATE A NEW CASE ARRAY
+        casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
@@ -128,12 +173,13 @@ class CodeGenerator:
         return new_case
 
     def makeVarAssignment(self):
-        casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4},
-                            {"name": ["VARNAME", "=", 'STRING'], "weight": 2},
-                            {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1},
-                            {"name": ["VARNAME", "=", 'LIST'], "weight": 1},
-                            {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2}]
+        casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4, "concept": "NUMBER"},
+                            {"name": ["VARNAME", "=", 'STRING'], "weight": 2, "concept": "STRING"},
+                            {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1, "concept": "BOOLEAN"},
+                            {"name": ["VARNAME", "=", 'LIST'], "weight": 1, "concept": "LIST"},
+                            {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2, "concept": "CONDITION"}]
 
+        casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         new_case = ""
@@ -169,11 +215,12 @@ class CodeGenerator:
     def makeStatement(self):
         casesWithWeights = [{"name": 'CONDITION', "weight": 3},
                             {"name": 'NUMBER', "weight": 1},
-                            {"name": 'VAR_ASSIGNMENT', "weight": 2},
-                            {"name": 'IFSTATEMENT', "weight": 2},
+                            {"name": 'VARIABLE', "weight": 2, "concept": "VARIABLE"},
+                            {"name": 'IF', "weight": 2, "concept": "IF"},
                             {"name": 'WHILE', "weight": 4},
-                            {"name": "PRINT_STATEMENT", "weight": 5 }]
+                            {"name": "PRINT", "weight": 5, "concept": "PRINT" }]
 
+        casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         new_case = ""
@@ -183,13 +230,13 @@ class CodeGenerator:
             new_case += self.makeCondition()
         elif rcase == "NUMBER":
             new_case += self.makeNumber()
-        elif rcase == "VAR_ASSIGNMENT":
+        elif rcase == "VARIABLE":
             new_case += self.makeVarAssignment()
-        elif rcase == "IFSTATEMENT":
+        elif rcase == "IF":
             new_case += self.makeIfBlock()
         elif rcase == "WHILE":
             new_case += self.makeWhileBlock()
-        elif rcase == "PRINT_STATEMENT":
+        elif rcase == "PRINT":
             new_case += self.makePrintStatement()
 
         #TODO - DO THIS WITH REGEX INSTEAD
@@ -220,16 +267,18 @@ class CodeGenerator:
         return str(int(random.random()*9)+1)
 
     def makeNumber(self, level=3):
-        casesWithWeights = [{"name": ["FLOAT"], "weight": 3},
-                            {"name": ["INTEGER"], "weight": 1}]
+        casesWithWeights = [{"name": ["FLOAT"], "weight": 3, "concept": "FLOAT"},
+                            {"name": ["INTEGER"], "weight": 1, "concept": "INTEGER"}]
 
         if "BASIC_OPERATORS" in self.CONCEPT_ARRAYS and level > 1:
             casesWithWeights.append(
-                {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
+                {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "BASIC_OPERATOR"})
 
         if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and level > 2:
             casesWithWeights.append(
-                {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
+                {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
+
+        casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
@@ -260,27 +309,28 @@ class CodeGenerator:
     def makeCondition(self,level=3):
         casesWithWeights = []
         if level == 2 or level == 1:
-            casesWithWeights.append({"name": ["True"], "weight": 2})
-            casesWithWeights.append({"name": ["False"], "weight": 1})
+            casesWithWeights.append({"name": ["True"], "weight": 2, "concept": "BOOLEAN"})
+            casesWithWeights.append({"name": ["False"], "weight": 1, "concept": "BOOLEAN"})
 
-        if "BRACKET" in self.CONCEPT_ARRAYS and level > 1:
-            casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2})
+        if level > 1:
+            casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2, "concept": "BRACKET"})
 
-        if "and" in self.CONCEPT_ARRAYS and level > 1:
+        if level > 1:
             casesWithWeights.append(
-                {"name": ["CONDITION", "and", "CONDITION"], "weight": 4})
+                {"name": ["CONDITION", "and", "CONDITION"], "weight": 4, "concept": "AND"})
 
-        if "or" in self.CONCEPT_ARRAYS and level > 1:
+        if level > 1:
             casesWithWeights.append(
-                {"name": ["CONDITION", "or", "CONDITION"], "weight": 3})
+                {"name": ["CONDITION", "or", "CONDITION"], "weight": 3, "concept": "OR"})
 
-        if "not" in self.CONCEPT_ARRAYS and level > 1:
-            casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1})
+        if level > 1:
+            casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1, "concept": "NOT"})
 
         if "CONDITIONAL_OPERATOR" in self.CONCEPT_ARRAYS and level > 1:
             casesWithWeights.append(
-                {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5})
+                {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5, "concept": "CONDITIONAL_OPERATOR"})
 
+        casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         if len(rcase) == 1:
@@ -310,8 +360,11 @@ class CodeGenerator:
         block = reduce(lambda x, y: x+y, block)
         return block
 
-    def makeWhileCondition(self,index_variable):
-        condition = index_variable + " " + random.choice(["<", "<=", "!="]) + " " + self.makeSmallInteger()
+    def initaliseIncrementVariable(self, index_variable):
+        return index_variable + " = " + str(random.choice([0, 1]))
+
+    def makeWhileCondition(self, index_variable):
+        condition = index_variable + " " + random.choice(["<", "<=", "!="]) + " " + self.makeSmallPositiveInteger()
         return condition
 
     def incrementCondition(self, index_variable):
@@ -320,7 +373,8 @@ class CodeGenerator:
     def makeWhileBlock(self, level=2):
         index_variable = random.choice(self.INDEX_VARIABLES_NAMES)
 
-        return "while ("+self.makeWhileCondition(index_variable)+") :\n\t" + \
+        return self.initaliseIncrementVariable(index_variable) + "\n" \
+                "while ("+self.makeWhileCondition(index_variable)+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\n\t" + self.incrementCondition(index_variable)
 
@@ -330,6 +384,8 @@ class CodeGenerator:
 
         if level > 1:
             casesWithWeights.append({"name": "IFELIFSE", "weight": 2})
+
+        casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
@@ -360,11 +416,7 @@ class CodeGenerator:
             statements.append(self.makeStatement())
         return statements
 
-    def generateCode(self, concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
-                                    "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
-                                    "VAR_ASSIGNMENT", "IFELSE", "WHILE"]):
-                    
-        # self.CONCEPT_ARRAYS = self.concept_arrays
+    def generateCode(self, concept_arrays):
         for i in self.makeBlock():
             print i
 
@@ -373,5 +425,11 @@ class CodeGenerator:
 
 if __name__ == "__main__":
     codeGen = CodeGenerator()
-    codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
-    codeGen.generateCode()
+    # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
+    # codeGen.setConceptArray(["IF"])
+    # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
+    # codeGen.setConceptArray(["WHILE"])
+    # codeGen.setConceptArray(["INTEGER"])
+    # codeGen.setConceptArray(["FLOAT"])
+    # codeGen.setConceptArray(["STRING"])
+    codeGen.generateCode([])
