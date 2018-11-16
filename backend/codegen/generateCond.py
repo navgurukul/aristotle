@@ -1,5 +1,8 @@
 import random
 
+# TODO need to work on the glevel
+# TODO need to work on the difficulty level
+
 class CodeGenerator:
     GLEVEL = 0
 
