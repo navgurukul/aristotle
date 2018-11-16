@@ -12,356 +12,366 @@ CONDITIONAL_OPERATOR
 WHILE
 """
 
-GLEVEL = 0
-CONCEPT_ARRAYS =  ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
-                  "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
+class CodeGenerator:
+    GLEVEL = 0
+
+    BASIC_OOPERATORS = ["+", "-", "*", "/"]
+    MODULUS_OPERATOR = "%"
+    CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
+    BOOLEAN_VALUES = ["True", "False"]
+    VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
+                    "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
+    INDEX_VARIABLES_NAMES = ["ctr", "index", "i", "n"]
+
+    CONCEPT_ARRAYS = []
+
+    # Kaun kaun se variables, kis type se define kiye hai
+    # [{name: "shivam", type: "bool"}]
+    variable_map = []
+
+    def __init__(self):
+        self.CONCEPT_ARRAYS = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR",
+                  "BASIC_OOPERATORS", "MODULUS_OPERATOR",
                   "VAR_ASSIGNMENT", "IFELSE", "WHILE"]
 
-BASIC_OOPERATORS = ["+", "-", "*", "/"]
-MODULUS_OPERATOR = "%"
-CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
-BOOLEAN_VALUES = ["True", "False"]
-VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau", "holySee", "koreaSouth",
-                   "newZealand", "palestinianTerritories", "sanMarino", "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
-INDEX_VARIABLES_NAMES = ["ctr", "index", "i", "n"]
+    def setConceptArray(self, concept_array):
+        self.CONCEPT_ARRAYS = concept_array
 
-# Kaun kaun se variables, kis type se define kiye hai
-# [{name: "shivam", type: "bool"}]
-variable_map = []
+    def makeBoolean(self):
+        return random.choice(self.BOOLEAN_VALUES)
 
-def makeBoolean():
-    return random.choice(BOOLEAN_VALUES)
+    def makeString(self):
+        return '"' + random.choice(self.VARIABLES_ARRAY) + '"'
 
-def makeString():
-    return '"' + random.choice(VARIABLES_ARRAY) + '"'
+    def selectWeightedRandom(self, container, weights):
+        total_weight = float(sum(weights))
+        rel_weight = [w / total_weight for w in weights]
 
-def selectWeightedRandom(container, weights):
-    total_weight = float(sum(weights))
-    rel_weight = [w / total_weight for w in weights]
+        # Probability for each element
+        probs = [sum(rel_weight[:i + 1]) for i in range(len(rel_weight))]
 
-    # Probability for each element
-    probs = [sum(rel_weight[:i + 1]) for i in range(len(rel_weight))]
+        slot = random.random()*1
+        for (i, element) in enumerate(container):
+            if slot <= probs[i]:
+                break
 
-    slot = random.random()*1
-    for (i, element) in enumerate(container):
-        if slot <= probs[i]:
-            break
-
-    return element
+        return element
 
 
-def prepareForWeightedSelection(selectionList):
-    cases = []
-    weights = []
-    for obj in selectionList:
-        cases.append(obj['name'])
-        weights.append(obj['weight'])
+    def prepareForWeightedSelection(self, selectionList):
+        cases = []
+        weights = []
+        for obj in selectionList:
+            cases.append(obj['name'])
+            weights.append(obj['weight'])
 
-    return selectWeightedRandom(cases, weights)
+        return self.selectWeightedRandom(cases, weights)
 
 
-def makeList(level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
-                        {"name": "STRING", "weight": 4},
-                        {"name": "BOOLEAN", "weight": 1}]):
+    def makeList(self, level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
+                            {"name": "STRING", "weight": 4},
+                            {"name": "BOOLEAN", "weight": 1}]):
 
-    if level > 1:
-        casesWithWeights.append({"name": 'LIST', "weight": 2})
+        if level > 1:
+            casesWithWeights.append({"name": 'LIST', "weight": 2})
 
-    rcase = prepareForWeightedSelection(casesWithWeights)
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
 
-    new_case = '['
-    num_elements = int(random.random()*5)
+        new_case = '['
+        num_elements = int(random.random()*5)
 
-    if num_elements == 0:
-        return "[]"
+        if num_elements == 0:
+            return "[]"
 
-    for i in range(num_elements):
+        for i in range(num_elements):
+            if rcase == 'NUMBER':
+                new_case = new_case + self.makeNumber() + ', '
+            elif rcase == 'STRING':
+                new_case = new_case + self.makeString() + ', '
+            elif rcase == 'BOOLEAN':
+                bool_val = str(self.makeBoolean())
+                new_case = new_case + bool_val + ', '
+            elif rcase == 'LIST':
+                newCasesWithWeights = []
+                for i in casesWithWeights:
+                    if i['name'] != "LIST":
+                        newCasesWithWeights.append(i)
+
+                list_type = self.prepareForWeightedSelection(newCasesWithWeights)
+                new_case = new_case + self.makeList(level=level-2, casesWithWeights=[{"name": list_type, "weight": 1}]) + ', '
+                # ast.literal_eval(makeList(level=level-2)) + ', '
+
+        new_case = new_case[:-2]
+        new_case += ']'
+        return new_case
+
+    def makeConstant(self, level=2):
+        casesWithWeights = [{"name": "NUMBER", "weight": 3},
+                            {"name": "STRING", "weight": 4},
+                            {"name": "BOOLEAN", "weight": 1},
+                            {"name": "LIST", "weight": 3}]
+
+        #TDOD - MAKE A FUNCTION TO FIND INTERSECTION OF CASES WITH CONCEPT_ARRAY INPUT TO CREATE A NEW CASE ARRAY
+
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
+
         if rcase == 'NUMBER':
-            new_case = new_case + makeNumber() + ', '
+            new_case = self.makeNumber()
         elif rcase == 'STRING':
-            new_case = new_case + makeString() + ', '
+            new_case = self.makeString()
         elif rcase == 'BOOLEAN':
-            bool_val = str(makeBoolean())
-            new_case = new_case + bool_val + ', '
+            bool_val = str(self.makeBoolean())
+            new_case = bool_val
         elif rcase == 'LIST':
-            newCasesWithWeights = []
-            for i in casesWithWeights:
-                if i['name'] != "LIST":
-                    newCasesWithWeights.append(i)
+            new_case = self.makeList(2)
 
-            list_type = prepareForWeightedSelection(newCasesWithWeights)
-            new_case = new_case + makeList(level=level-2, casesWithWeights=[{"name": list_type, "weight": 1}]) + ', '
-            # ast.literal_eval(makeList(level=level-2)) + ', '
+        return new_case
 
-    new_case = new_case[:-2]
-    new_case += ']'
-    return new_case
+    def makeVarAssignment(self):
+        casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4},
+                            {"name": ["VARNAME", "=", 'STRING'], "weight": 2},
+                            {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1},
+                            {"name": ["VARNAME", "=", 'LIST'], "weight": 1},
+                            {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2}]
 
-def makeConstant(level=2):
-    casesWithWeights = [{"name": "NUMBER", "weight": 3},
-                        {"name": "STRING", "weight": 4},
-                        {"name": "BOOLEAN", "weight": 1},
-                        {"name": "LIST", "weight": 3}]
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
 
-    #TDOD - MAKE A FUNCTION TO FIND INTERSECTION OF CASES WITH CONCEPT_ARRAY INPUT TO CREATE A NEW CASE ARRAY
-
-    rcase = prepareForWeightedSelection(casesWithWeights)
-
-    if rcase == 'NUMBER':
-        new_case = makeNumber()
-    elif rcase == 'STRING':
-        new_case = makeString()
-    elif rcase == 'BOOLEAN':
-        bool_val = str(makeBoolean())
-        new_case = bool_val
-    elif rcase == 'LIST':
-        new_case = makeList(2)
-
-    return new_case
-
-def makeVarAssignment():
-    casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4},
-                        {"name": ["VARNAME", "=", 'STRING'], "weight": 2},
-                        {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1},
-                        {"name": ["VARNAME", "=", 'LIST'], "weight": 1},
-                        {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2}]
-
-    rcase = prepareForWeightedSelection(casesWithWeights)
-
-    new_case = ""
-
-    for keyword in rcase:
-        if keyword == "VARNAME":
-            var_name = random.choice(VARIABLES_ARRAY)
-            new_case += var_name
-            dic = {"name": var_name, "type": rcase[2]}  # MAKE THIS GENERIC
-            variable_map.append(dic)
-
-        elif keyword == "NUMBER":
-            new_case += makeNumber()
-        elif keyword == "BOOLEAN":
-            new_case += makeBoolean()
-        elif keyword == "STRING":
-            new_case += makeString()
-        elif keyword == "LIST":
-            new_case += makeList()
-        elif keyword == "CONDITION":
-            new_case += makeCondition()
-        else:
-            new_case += keyword
-        new_case += " "
-
-    return new_case
-
-def makePrintStatement():
-    if (len(variable_map)):
-        return "print " + random.choice(variable_map)["name"]
-    return "print " + makeConstant()
-
-def makeStatement():
-    casesWithWeights = [{"name": 'CONDITION', "weight": 3},
-                        {"name": 'NUMBER', "weight": 1},
-                        {"name": 'VAR_ASSIGNMENT', "weight": 2},
-                        {"name": 'IFSTATEMENT', "weight": 2},
-                        {"name": 'WHILE', "weight": 4},
-                        {"name": "PRINT_STATEMENT", "weight": 5 }]
-
-    rcase = prepareForWeightedSelection(casesWithWeights)
-
-    new_case = ""
-
-    # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
-    if rcase == "CONDITION":
-        new_case += makeCondition()
-    elif rcase == "NUMBER":
-        new_case += makeNumber()
-    elif rcase == "VAR_ASSIGNMENT":
-        new_case += makeVarAssignment()
-    elif rcase == "IFSTATEMENT":
-        new_case += makeIfBlock()
-    elif rcase == "WHILE":
-        new_case += makeWhileBlock()
-    elif rcase == "PRINT_STATEMENT":
-        new_case += makePrintStatement()
-
-    #TODO - DO THIS WITH REGEX INSTEAD
-    while ("  " in new_case):
-        new_case = new_case.replace("  ", " ")
-
-    while ("( " in new_case):
-        new_case = new_case.replace("( ", "(")
-
-    while (" )" in new_case):
-        new_case = new_case.replace(" )", ")")
-
-    while ("[ " in new_case):
-        new_case = new_case.replace("[ ", "[")
-
-    while (" ]" in new_case):
-        new_case = new_case.replace(" ]", "]")
-
-    if new_case.startswith(" "):
-        new_case = new_case[1:]
-
-    return new_case
-
-def makeSmallInteger():
-    return str(int(random.random()*10))
-
-def makeSmallPositiveInteger():
-    return str(int(random.random()*9)+1)
-
-def makeNumber(level=3):
-    casesWithWeights = [{"name": ["FLOAT"], "weight": 3},
-                        {"name": ["INTEGER"], "weight": 1}]
-
-    if "BASIC_OPERATORS" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append(
-            {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
-
-    if "MODULUS_OPERATOR" in CONCEPT_ARRAYS and level > 2:
-        casesWithWeights.append(
-            {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
-
-    rcase = prepareForWeightedSelection(casesWithWeights)
-
-    new_case = ""
-    for keyword in rcase:
-        if keyword == "FLOAT":
-            new_case += str("{:12.2f}".format(random.random()*100))
-        elif keyword == "INTEGER":
-            new_case += str(int(random.random()*100))
-        elif keyword == "SMALL_INTEGER":
-            new_case += makeSmallInteger()
-        elif keyword == "SMALL_POSITIVE_INTEGER":
-            new_case += makeSmallPositiveInteger()
-        elif keyword == "NUMBER":
-            new_case += makeNumber()
-        elif keyword == "BASIC_OPERATOR":
-            new_case += random.choice(BASIC_OOPERATORS)
-        elif keyword == "MODULUS_OPERATOR":
-            new_case += '%'
-        else:
-            new_case += keyword
-
-        new_case += " "
-
-    return new_case
-
-
-def makeCondition(level=3):
-    casesWithWeights = []
-    if level == 2 or level == 1:
-        casesWithWeights.append({"name": ["True"], "weight": 2})
-        casesWithWeights.append({"name": ["False"], "weight": 1})
-
-    if "BRACKET" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2})
-
-    if "and" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append(
-            {"name": ["CONDITION", "and", "CONDITION"], "weight": 4})
-
-    if "or" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append(
-            {"name": ["CONDITION", "or", "CONDITION"], "weight": 3})
-
-    if "not" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1})
-
-    if "CONDITIONAL_OPERATOR" in CONCEPT_ARRAYS and level > 1:
-        casesWithWeights.append(
-            {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5})
-
-    rcase = prepareForWeightedSelection(casesWithWeights)
-
-    if len(rcase) == 1:
-        return rcase[0]
-
-    else:
         new_case = ""
+
         for keyword in rcase:
-            if keyword == "CONDITION":
-                new_case += makeCondition(level=level-1)
+            if keyword == "VARNAME":
+                var_name = random.choice(self.VARIABLES_ARRAY)
+                new_case += var_name
+                dic = {"name": var_name, "type": rcase[2]}  # MAKE THIS GENERIC
+                self.variable_map.append(dic)
+
             elif keyword == "NUMBER":
-                new_case += makeNumber()
-            elif keyword == "CONDITIONAL_OPERATOR":
-                new_case += random.choice(CONDITIONAL_OPERATORS)
+                new_case += self.makeNumber()
+            elif keyword == "BOOLEAN":
+                new_case += self.makeBoolean()
+            elif keyword == "STRING":
+                new_case += self.makeString()
+            elif keyword == "LIST":
+                new_case += self.makeList()
+            elif keyword == "CONDITION":
+                new_case += self.makeCondition()
             else:
                 new_case += keyword
             new_case += " "
 
         return new_case
 
-    return 'BUG'
+    def makePrintStatement(self):
+        if (len(self.variable_map)):
+            return "print " + random.choice(self.variable_map)["name"]
+        return "print " + self.makeConstant()
+
+    def makeStatement(self):
+        casesWithWeights = [{"name": 'CONDITION', "weight": 3},
+                            {"name": 'NUMBER', "weight": 1},
+                            {"name": 'VAR_ASSIGNMENT', "weight": 2},
+                            {"name": 'IFSTATEMENT', "weight": 2},
+                            {"name": 'WHILE', "weight": 4},
+                            {"name": "PRINT_STATEMENT", "weight": 5 }]
+
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
+
+        new_case = ""
+
+        # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
+        if rcase == "CONDITION":
+            new_case += self.makeCondition()
+        elif rcase == "NUMBER":
+            new_case += self.makeNumber()
+        elif rcase == "VAR_ASSIGNMENT":
+            new_case += self.makeVarAssignment()
+        elif rcase == "IFSTATEMENT":
+            new_case += self.makeIfBlock()
+        elif rcase == "WHILE":
+            new_case += self.makeWhileBlock()
+        elif rcase == "PRINT_STATEMENT":
+            new_case += self.makePrintStatement()
+
+        #TODO - DO THIS WITH REGEX INSTEAD
+        while ("  " in new_case):
+            new_case = new_case.replace("  ", " ")
+
+        while ("( " in new_case):
+            new_case = new_case.replace("( ", "(")
+
+        while (" )" in new_case):
+            new_case = new_case.replace(" )", ")")
+
+        while ("[ " in new_case):
+            new_case = new_case.replace("[ ", "[")
+
+        while (" ]" in new_case):
+            new_case = new_case.replace(" ]", "]")
+
+        if new_case.startswith(" "):
+            new_case = new_case[1:]
+
+        return new_case
+
+    def makeSmallInteger(self):
+        return str(int(random.random()*10))
+
+    def makeSmallPositiveInteger(self):
+        return str(int(random.random()*9)+1)
+
+    def makeNumber(self, level=3):
+        casesWithWeights = [{"name": ["FLOAT"], "weight": 3},
+                            {"name": ["INTEGER"], "weight": 1}]
+
+        if "BASIC_OPERATORS" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append(
+                {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3})
+
+        if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and level > 2:
+            casesWithWeights.append(
+                {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3})
+
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
+
+        new_case = ""
+        for keyword in rcase:
+            if keyword == "FLOAT":
+                new_case += str("{:12.2f}".format(random.random()*100))
+            elif keyword == "INTEGER":
+                new_case += str(int(random.random()*100))
+            elif keyword == "SMALL_INTEGER":
+                new_case += self.makeSmallInteger()
+            elif keyword == "SMALL_POSITIVE_INTEGER":
+                new_case += self.makeSmallPositiveInteger()
+            elif keyword == "NUMBER":
+                new_case += self.makeNumber()
+            elif keyword == "BASIC_OPERATOR":
+                new_case += random.choice(self.BASIC_OOPERATORS)
+            elif keyword == "MODULUS_OPERATOR":
+                new_case += '%'
+            else:
+                new_case += keyword
+
+            new_case += " "
+
+        return new_case
 
 
-def getBiggerBlock(num=2):
-    block = makeBlock(num=2)
-    block = map(lambda x: x.split('\n'), block)
-    block = reduce(lambda x, y: x+y, block)
-    return block
+    def makeCondition(self,level=3):
+        casesWithWeights = []
+        if level == 2 or level == 1:
+            casesWithWeights.append({"name": ["True"], "weight": 2})
+            casesWithWeights.append({"name": ["False"], "weight": 1})
 
-def makeWhileCondition(index_variable):
-    condition = index_variable + " " + random.choice(["<", "<=", "!="]) + " " + makeSmallInteger()
-    return condition
+        if "BRACKET" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2})
 
-def incrementCondition(index_variable):
-    return random.choice([index_variable + " += 1", index_variable + " = " + index_variable + " + 1"])
+        if "and" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append(
+                {"name": ["CONDITION", "and", "CONDITION"], "weight": 4})
 
-def makeWhileBlock(level=2):
-    index_variable = random.choice(INDEX_VARIABLES_NAMES)
+        if "or" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append(
+                {"name": ["CONDITION", "or", "CONDITION"], "weight": 3})
 
-    return "while ("+makeWhileCondition(index_variable)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock()) + \
-            "\n\t" + incrementCondition(index_variable)
+        if "not" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1})
 
-def makeIfBlock(level=2):
-    casesWithWeights = [{"name": "IF", "weight": 3}, {
-        "name": "IFELSE", "weight": 2}]
+        if "CONDITIONAL_OPERATOR" in self.CONCEPT_ARRAYS and level > 1:
+            casesWithWeights.append(
+                {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5})
 
-    if level > 1:
-        casesWithWeights.append({"name": "IFELIFSE", "weight": 2})
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
 
-    rcase = prepareForWeightedSelection(casesWithWeights)
+        if len(rcase) == 1:
+            return rcase[0]
 
-    if rcase == "IF":
-        return "if ("+makeCondition(level=1)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock()) + \
-            "\n"
+        else:
+            new_case = ""
+            for keyword in rcase:
+                if keyword == "CONDITION":
+                    new_case += self.makeCondition(level=level-1)
+                elif keyword == "NUMBER":
+                    new_case += self.makeNumber()
+                elif keyword == "CONDITIONAL_OPERATOR":
+                    new_case += random.choice(self.CONDITIONAL_OPERATORS)
+                else:
+                    new_case += keyword
+                new_case += " "
 
-    elif rcase == "IFELSE":
-        return "if ("+makeCondition(level=1)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock()) + \
-            "\nelse:\n\t" + \
-            "\n\t".join(getBiggerBlock())
+            return new_case
 
-    elif rcase == "IFELIFSE":
-        return "if ("+makeCondition(level=1)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock()) + \
-            "\nelif ("+makeCondition(level=1)+") :\n\t" + \
-            "\n\t".join(getBiggerBlock()) + \
-            "\nelse:\n\t" + \
-            "\n\t".join(getBiggerBlock())
+        return 'BUG'
 
 
-def makeBlock(num=5):
-    statements = []
-    num_statements = int(random.random()*num)+1
-    for _ in range(num_statements):
-        statements.append(makeStatement())
-    return statements
+    def getBiggerBlock(self, num=2):
+        block = self.makeBlock(num=2)
+        block = map(lambda x: x.split('\n'), block)
+        block = reduce(lambda x, y: x+y, block)
+        return block
 
-def generateCode(concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
-                  "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
-                  "VAR_ASSIGNMENT", "IFELSE", "WHILE"]):
-                
-    # CONCEPT_ARRAYS = concept_arrays
-    for i in makeBlock():
-        print i
+    def makeWhileCondition(self,index_variable):
+        condition = index_variable + " " + random.choice(["<", "<=", "!="]) + " " + self.makeSmallInteger()
+        return condition
 
-    for var in variable_map:
-        print "print "+var["name"]
+    def incrementCondition(self, index_variable):
+        return random.choice([index_variable + " += 1", index_variable + " = " + index_variable + " + 1"])
+
+    def makeWhileBlock(self, level=2):
+        index_variable = random.choice(self.INDEX_VARIABLES_NAMES)
+
+        return "while ("+self.makeWhileCondition(index_variable)+") :\n\t" + \
+                "\n\t".join(self.getBiggerBlock()) + \
+                "\n\t" + self.incrementCondition(index_variable)
+
+    def makeIfBlock(self, level=2):
+        casesWithWeights = [{"name": "IF", "weight": 3}, {
+            "name": "IFELSE", "weight": 2}]
+
+        if level > 1:
+            casesWithWeights.append({"name": "IFELIFSE", "weight": 2})
+
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
+
+        if rcase == "IF":
+            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+                "\n\t".join(self.getBiggerBlock()) + \
+                "\n"
+
+        elif rcase == "IFELSE":
+            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+                "\n\t".join(self.getBiggerBlock()) + \
+                "\nelse:\n\t" + \
+                "\n\t".join(self.getBiggerBlock())
+
+        elif rcase == "IFELIFSE":
+            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+                "\n\t".join(self.getBiggerBlock()) + \
+                "\nelif ("+self.makeCondition(level=1)+") :\n\t" + \
+                "\n\t".join(self.getBiggerBlock()) + \
+                "\nelse:\n\t" + \
+                "\n\t".join(self.getBiggerBlock())
+
+
+    def makeBlock(self, num=5):
+        statements = []
+        num_statements = int(random.random()*num)+1
+        for _ in range(num_statements):
+            statements.append(self.makeStatement())
+        return statements
+
+    def generateCode(self, concept_arrays = ["BRACKET", "and", "or", "not", "CONDITIONAL_OPERATOR", \
+                                    "BASIC_OOPERATORS", "MODULUS_OPERATOR", \
+                                    "VAR_ASSIGNMENT", "IFELSE", "WHILE"]):
+                    
+        # self.CONCEPT_ARRAYS = self.concept_arrays
+        for i in self.makeBlock():
+            print i
+
+        for var in self.variable_map:
+            print "print "+var["name"]
 
 if __name__ == "__main__":
-    generateCode()
+    codeGen = CodeGenerator()
+    codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
+    codeGen.generateCode()
