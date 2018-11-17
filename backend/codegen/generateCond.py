@@ -114,12 +114,10 @@ class CodeGenerator:
         return ncases
 
     def makeList(self, level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
-                            {"name": "STRING", "weight": 4},
+                            {"name": "STRING", "weight": 2},
                             {"name": "BOOLEAN", "weight": 1}]):
 
-        casesWithWeights = self.validCases(casesWithWeights)
-
-        if level > 1:
+        if self.difficulty_level > 0.5:
             casesWithWeights.append({"name": 'LIST', "weight": 2})
             
         casesWithWeights = self.validCases(casesWithWeights)
@@ -156,9 +154,11 @@ class CodeGenerator:
 
     def makeConstant(self, level=2):
         casesWithWeights = [{"name": "NUMBER", "weight": 3},
-                            {"name": "STRING", "weight": 4},
-                            {"name": "BOOLEAN", "weight": 1},
-                            {"name": "LIST", "weight": 3}]
+                            {"name": "STRING", "weight": 2},
+                            {"name": "BOOLEAN", "weight": 1}]
+        
+        if self.difficulty_level > 0.4:
+            casesWithWeights.append({"name": "LIST", "weight": 2})
 
         casesWithWeights = self.validCases(casesWithWeights)
 
@@ -177,11 +177,17 @@ class CodeGenerator:
         return new_case
 
     def makeVarAssignment(self):
+        # BREAK NUMBER CASE INTO INTEGER AND FLOAT
+        # USE VARIABLE PROPERLY AGAIN AND AGAIN IN THE CODE 
         casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4, "concept": "NUMBER"},
                             {"name": ["VARNAME", "=", 'STRING'], "weight": 2, "concept": "STRING"},
-                            {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1, "concept": "BOOLEAN"},
-                            {"name": ["VARNAME", "=", 'LIST'], "weight": 1, "concept": "LIST"},
-                            {"name": ["VARNAME", "=", 'CONDITION'], "weight": 2, "concept": "CONDITION"}]
+                            {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1, "concept": "BOOLEAN"}]
+        
+        if self.difficulty_level > 0.2:
+            casesWithWeights.append({"name": ["VARNAME", "=", 'LIST'], "weight": 1, "concept": "LIST"})
+        
+        elif self.difficulty_level > 0.4:
+            casesWithWeights.append({"name": ["VARNAME", "=", 'CONDITION'], "weight": 2, "concept": "CONDITION"})
 
         casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
@@ -218,7 +224,7 @@ class CodeGenerator:
 
     def makeStatement(self):
         casesWithWeights = [{"name": 'CONDITION', "weight": 3},
-                            {"name": 'NUMBER', "weight": 1},
+                            # {"name": 'NUMBER', "weight": 1},
                             {"name": 'VARIABLE', "weight": 2, "concept": "VARIABLE"},
                             {"name": 'IF', "weight": 2, "concept": "IF"},
                             {"name": 'WHILE', "weight": 4},
@@ -274,11 +280,11 @@ class CodeGenerator:
         casesWithWeights = [{"name": ["FLOAT"], "weight": 3, "concept": "FLOAT"},
                             {"name": ["INTEGER"], "weight": 1, "concept": "INTEGER"}]
 
-        if "BASIC_OPERATORS" in self.CONCEPT_ARRAYS and level > 1:
+        if "BASIC_OPERATORS" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.2:
             casesWithWeights.append(
                 {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "BASIC_OPERATOR"})
 
-        if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and level > 2:
+        if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.4:
             casesWithWeights.append(
                 {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
 
@@ -388,7 +394,7 @@ class CodeGenerator:
         if self.difficulty_level > 0.3:
             casesWithWeights.append({"name": "IFELSE", "weight": 3})
 
-        if self.difficulty_level > 0.6:
+        elif self.difficulty_level > 0.6:
             casesWithWeights.append({"name": "IFELIFSE", "weight": 4})
 
         casesWithWeights = self.validCases(casesWithWeights)
@@ -428,7 +434,8 @@ class CodeGenerator:
             print i
 
         for var in self.variable_map:
-            print "print "+var["name"]
+            if random.random() > 0.6:
+                print "print "+var["name"]
 
 if __name__ == "__main__":
     codeGen = CodeGenerator()
