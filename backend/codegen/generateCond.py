@@ -121,7 +121,8 @@ class CodeGenerator:
 
         if level > 1:
             casesWithWeights.append({"name": 'LIST', "weight": 2})
-            casesWithWeights = self.validCases(casesWithWeights)
+            
+        casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
@@ -382,11 +383,13 @@ class CodeGenerator:
                 "\n\t" + self.incrementCondition(index_variable)
 
     def makeIfBlock(self, level=3):
-        casesWithWeights = [{"name": "IF", "weight": 3}, {
-            "name": "IFELSE", "weight": 2}]
+        casesWithWeights = [{"name": "IF", "weight": 2}]
 
-        if level > 1:
-            casesWithWeights.append({"name": "IFELIFSE", "weight": 2})
+        if self.difficulty_level > 0.3:
+            casesWithWeights.append({"name": "IFELSE", "weight": 3})
+
+        if self.difficulty_level > 0.6:
+            casesWithWeights.append({"name": "IFELIFSE", "weight": 4})
 
         casesWithWeights = self.validCases(casesWithWeights)
 
@@ -414,7 +417,8 @@ class CodeGenerator:
 
     def makeBlock(self, num=5):
         statements = []
-        num_statements = int(random.random()*num)+1
+        num_statements = int(random.random()*num*3*min(0.3,self.difficulty_level))+1
+        
         for _ in range(num_statements):
             statements.append(self.makeStatement())
         return statements
