@@ -1,7 +1,8 @@
 import random
 from sys import getrecursionlimit, setrecursionlimit
+from functools import reduce
 
-setrecursionlimit(50)
+setrecursionlimit(100)
 # TODO need to work on the glevel
 # TODO need to work on the difficulty level
 
@@ -71,6 +72,7 @@ class CodeGenerator:
     def setConceptArray(self, concept_array):
         self.CONCEPT_ARRAYS = concept_array
         self.sanitiseConceptArrays()
+        print(self.CONCEPT_ARRAYS)
 
     def setDifficultyLevel(self, level=1):
         self.difficulty_level = level
@@ -443,12 +445,14 @@ class CodeGenerator:
 
     def generateCode(self):
         block = self.getBlock()
-        for i in block:
-            print i
+        block = map(lambda x: x.split('\n'), block)
+        block = reduce(lambda x, y: x+y, block)
 
         for var in self.variable_map:
             if random.random() > 0.6:
-                print "print "+var["name"]
+                block.append("print "+var["name"])
+        
+        return block
 
 if __name__ == "__main__":
     codeGen = CodeGenerator()
@@ -460,4 +464,4 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["STRING"])
     codeGen.setDifficultyLevel(1)
-    codeGen.generateCode()
+    print(codeGen.generateCode())

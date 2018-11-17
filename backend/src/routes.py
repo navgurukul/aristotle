@@ -1,8 +1,13 @@
 import json
+import sys
+import os.path
+
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "codegen")))
 
 from flask_restplus import Resource
-
-from src import api
+from CodeGen import CodeGenerator
+from . import api
 
 @api.route("/stages")
 class StagesList(Resource):
@@ -34,10 +39,13 @@ class Stage(Resource):
 class LevelRandomQuestionList(Resource):
 
     def get(self, stage_id, level_id):
-        #TODO: @Abhishek/@Shivam: Yahan on basis of stage and level a random list of 10 questions needs to be generated
-        #TODO: The stages are listed in `data/stages.json`. You can edit the stages and number of levels per stage from there.
-        questions_file = open("data/questions.json")
-        questions = json.loads(questions_file.read())
-        questions = questions['questions']
+        codeGen = CodeGenerator()
+        level = int(level_id)/5.0
+        codeGen.setDifficultyLevel(level)
+        codeGen.setConceptArray([stage_id])
 
-        return questions
+        results = []
+        for i in range(10):
+            results.append({ "text": codeGen.generateCode() , "answer" : 1 })
+
+        return results
