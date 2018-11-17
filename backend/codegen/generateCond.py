@@ -1,10 +1,12 @@
 import random
+from sys import getrecursionlimit, setrecursionlimit
 
+setrecursionlimit(50)
 # TODO need to work on the glevel
 # TODO need to work on the difficulty level
 
 class CodeGenerator:
-    BASIC_OOPERATORS = ["+", "-", "*", "/"]
+    ARITHMETIC_OPERATORS = ["+", "-", "*", "/"]
     MODULUS_OPERATOR = "%"
     CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
     BOOLEAN_VALUES = ["True", "False"]
@@ -22,7 +24,7 @@ class CodeGenerator:
         self.CONCEPT_ARRAYS = [ "PRINT", \
                     "INTEGER", "FLOAT", "STRING", "BOOLEAN",  "LIST", \
                     "CONDITION", \
-                    "BASIC_OOPERATORS", "MODULUS_OPERATOR", "CONDITIONAL_OPERATOR", \
+                    "ARITHMETIC_OPERATORS", "MODULUS_OPERATOR", "CONDITIONAL_OPERATOR", \
                     "BRACKET", "AND", "OR", "NOT", \
                     "VARIABLE", "WHILE", \
                     "IF", "IFELSE", "IFELIFSE" ]
@@ -36,6 +38,9 @@ class CodeGenerator:
             }, {
                 "ifThere": ["IF"],
                 "shouldBeThere": ["CONDITIONAL_OPERATOR"]
+            }, {
+                "ifThere": ["ARITHMETIC_OPERATORS"],
+                "shouldBeThere": ["NUMBER"]
             }, {
                 "ifThere": ["INTEGER", "FLOAT"],
                 "shouldBeThere": ["NUMBER"]
@@ -125,7 +130,7 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         new_case = '['
-        num_elements = int(random.random()*5)
+        num_elements = int(random.random()*5+0.7)
 
         if num_elements == 0:
             return "[]"
@@ -305,7 +310,7 @@ class CodeGenerator:
             elif keyword == "NUMBER":
                 new_case += self.makeNumber()
             elif keyword == "BASIC_OPERATOR":
-                new_case += random.choice(self.BASIC_OOPERATORS)
+                new_case += random.choice(self.ARITHMETIC_OPERATORS)
             elif keyword == "MODULUS_OPERATOR":
                 new_case += '%'
             else:
@@ -429,8 +434,16 @@ class CodeGenerator:
             statements.append(self.makeStatement())
         return statements
 
-    def generateCode(self, concept_arrays):
-        for i in self.makeBlock():
+    def getBlock(self):
+        try:
+            block = self.makeBlock()
+            return block
+        except RuntimeError:
+            return self.getBlock()
+
+    def generateCode(self):
+        block = self.getBlock()
+        for i in block:
             print i
 
         for var in self.variable_map:
@@ -447,4 +460,4 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["STRING"])
     codeGen.setDifficultyLevel(1)
-    codeGen.generateCode([])
+    codeGen.generateCode()
