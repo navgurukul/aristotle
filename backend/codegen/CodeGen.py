@@ -452,6 +452,7 @@ class CodeGenerator:
             if random.random() > 0.6:
                 block.append("print "+var["name"])
         
+        self.variable_map = []
         return block
 
 if __name__ == "__main__":
