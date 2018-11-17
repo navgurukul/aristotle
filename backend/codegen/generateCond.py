@@ -4,8 +4,6 @@ import random
 # TODO need to work on the difficulty level
 
 class CodeGenerator:
-    GLEVEL = 0
-
     BASIC_OOPERATORS = ["+", "-", "*", "/"]
     MODULUS_OPERATOR = "%"
     CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
@@ -17,9 +15,8 @@ class CodeGenerator:
 
     CONCEPT_ARRAYS = []
 
-    # Kaun kaun se variables, kis type se define kiye hai
-    # [{name: "shivam", type: "bool"}]
     variable_map = []
+    difficulty_level = 1
 
     def __init__(self):
         self.CONCEPT_ARRAYS = [ "PRINT", \
@@ -69,6 +66,9 @@ class CodeGenerator:
     def setConceptArray(self, concept_array):
         self.CONCEPT_ARRAYS = concept_array
         self.sanitiseConceptArrays()
+
+    def setDifficultyLevel(self, level=1):
+        self.difficulty_level = level
 
     def makeBoolean(self):
         return random.choice(self.BOOLEAN_VALUES)
@@ -381,7 +381,7 @@ class CodeGenerator:
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\n\t" + self.incrementCondition(index_variable)
 
-    def makeIfBlock(self, level=2):
+    def makeIfBlock(self, level=3):
         casesWithWeights = [{"name": "IF", "weight": 3}, {
             "name": "IFELSE", "weight": 2}]
 
@@ -393,20 +393,20 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         if rcase == "IF":
-            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\n"
 
         elif rcase == "IFELSE":
-            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\nelse:\n\t" + \
                 "\n\t".join(self.getBiggerBlock())
 
         elif rcase == "IFELIFSE":
-            return "if ("+self.makeCondition(level=1)+") :\n\t" + \
+            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
-                "\nelif ("+self.makeCondition(level=1)+") :\n\t" + \
+                "\nelif ("+self.makeCondition(level=level-1)+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\nelse:\n\t" + \
                 "\n\t".join(self.getBiggerBlock())
@@ -435,4 +435,5 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["STRING"])
+    codeGen.setDifficultyLevel(1)
     codeGen.generateCode([])
