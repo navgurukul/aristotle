@@ -43,6 +43,9 @@ class CodeGenerator:
                 "ifThere": ["ARITHMETIC_OPERATORS"],
                 "shouldBeThere": ["NUMBER"]
             }, {
+                "ifThere": ["LIST"],
+                "shouldBeThere": ["NUMBER", "STRING"]
+            }, {
                 "ifThere": ["INTEGER", "FLOAT"],
                 "shouldBeThere": ["NUMBER"]
             }, {
@@ -72,16 +75,36 @@ class CodeGenerator:
     def setConceptArray(self, concept_array):
         self.CONCEPT_ARRAYS = concept_array
         self.sanitiseConceptArrays()
-        print(self.CONCEPT_ARRAYS)
 
     def setDifficultyLevel(self, level=1):
         self.difficulty_level = level
 
-    def makeBoolean(self):
-        return random.choice(self.BOOLEAN_VALUES)
+    def getVariable(self, VTYPE):
+        nmap = []
+        for i in self.variable_map:
+            if i['type'] == VTYPE:
+                nmap.append(i["name"])
+        
+        if len(nmap):
+            return random.choice(nmap)
+        else:
+            return ""
 
+    def newOrOld(self, vtype, prob, nvalue):
+        var = ""
+        if random.random() > prob:
+            var = self.getVariable(vtype)
+        
+        if not var:
+            var = nvalue
+        
+        return var
+
+    def makeBoolean(self):
+        return self.newOrOld("BOOLEAN", 0.4, random.choice(self.BOOLEAN_VALUES))
+ 
     def makeString(self):
-        return '"' + random.choice(self.VARIABLES_ARRAY) + '"'
+        return self.newOrOld("STRING", 0.5, '"' + random.choice(self.VARIABLES_ARRAY) + '"')
 
     def selectWeightedRandom(self, container, weights):
         total_weight = float(sum(weights))
@@ -137,27 +160,36 @@ class CodeGenerator:
         if num_elements == 0:
             return "[]"
 
-        for i in range(num_elements):
-            if rcase == 'NUMBER':
+        vtype = rcase
+
+        if rcase == 'NUMBER':
+            for i in range(num_elements):
                 new_case = new_case + self.makeNumber() + ', '
-            elif rcase == 'STRING':
+        elif rcase == 'STRING':
+            for i in range(num_elements):
                 new_case = new_case + self.makeString() + ', '
-            elif rcase == 'BOOLEAN':
+        elif rcase == 'BOOLEAN':
+            for i in range(num_elements):
                 bool_val = str(self.makeBoolean())
                 new_case = new_case + bool_val + ', '
-            elif rcase == 'LIST':
+        elif rcase == 'LIST':
+            nvtype = ""
+
+            for i in range(num_elements):
                 newCasesWithWeights = []
                 for i in casesWithWeights:
                     if i['name'] != "LIST":
                         newCasesWithWeights.append(i)
 
                 list_type = self.prepareForWeightedSelection(newCasesWithWeights)
-                new_case = new_case + self.makeList(level=level-2, casesWithWeights=[{"name": list_type, "weight": 1}]) + ', '
-                # ast.literal_eval(makeList(level=level-2)) + ', '
+                (ncase, nvtype) = self.makeList(level=level-2, casesWithWeights=[{"name": list_type, "weight": 1}])
+                new_case = new_case + ncase + ', '
+
+            vtype += "_" + nvtype
 
         new_case = new_case[:-2]
         new_case += ']'
-        return new_case
+        return (new_case, vtype)
 
     def makeConstant(self, level=2):
         casesWithWeights = [{"name": "NUMBER", "weight": 3},
@@ -172,14 +204,14 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         if rcase == 'NUMBER':
-            new_case = self.makeNumber()
+            new_case = self.makeNumber()[0]
         elif rcase == 'STRING':
             new_case = self.makeString()
         elif rcase == 'BOOLEAN':
             bool_val = str(self.makeBoolean())
             new_case = bool_val
         elif rcase == 'LIST':
-            new_case = self.makeList(2)
+            new_case = self.makeList(2)[0]
 
         return new_case
 
@@ -200,27 +232,33 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         new_case = ""
+        vtype = ""
 
         for keyword in rcase:
             if keyword == "VARNAME":
                 var_name = random.choice(self.VARIABLES_ARRAY)
                 new_case += var_name
-                dic = {"name": var_name, "type": rcase[2]}  # MAKE THIS GENERIC
-                self.variable_map.append(dic)
+                vtype = rcase[2]
 
             elif keyword == "NUMBER":
-                new_case += self.makeNumber()
+                (ncase, vtype) = self.makeNumber()
+                new_case += ncase
             elif keyword == "BOOLEAN":
                 new_case += self.makeBoolean()
             elif keyword == "STRING":
                 new_case += self.makeString()
             elif keyword == "LIST":
-                new_case += self.makeList()
+                (ncase, vtype) = self.makeList()
+                new_case += ncase
+                vtype = "LIST_" + vtype
             elif keyword == "CONDITION":
                 new_case += self.makeCondition()
             else:
                 new_case += keyword
             new_case += " "
+
+        dic = {"name": var_name, "type": vtype}  # MAKE THIS GENERIC
+        self.variable_map.append(dic)
 
         return new_case
 
@@ -230,12 +268,11 @@ class CodeGenerator:
         return "print " + self.makeConstant()
 
     def makeStatement(self):
-        casesWithWeights = [{"name": 'CONDITION', "weight": 3},
-                            # {"name": 'NUMBER', "weight": 1},
-                            {"name": 'VARIABLE', "weight": 2, "concept": "VARIABLE"},
-                            {"name": 'IF', "weight": 2, "concept": "IF"},
-                            {"name": 'WHILE', "weight": 4},
-                            {"name": "PRINT", "weight": 5, "concept": "PRINT" }]
+        casesWithWeights = [{"name": 'CONDITION', "weight": 2},
+                            {"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"},
+                            {"name": 'IF', "weight": 4, "concept": "IF"},
+                            {"name": 'WHILE', "weight": 3},
+                            {"name": "PRINT", "weight": 1, "concept": "PRINT" }]
 
         casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
@@ -245,8 +282,6 @@ class CodeGenerator:
         # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
         if rcase == "CONDITION":
             new_case += self.makeCondition()
-        elif rcase == "NUMBER":
-            new_case += self.makeNumber()
         elif rcase == "VARIABLE":
             new_case += self.makeVarAssignment()
         elif rcase == "IF":
@@ -281,7 +316,7 @@ class CodeGenerator:
         return str(int(random.random()*10))
 
     def makeSmallPositiveInteger(self):
-        return str(int(random.random()*9)+1)
+        return self.newOrOld("SMALL_POSITIVE_INTEGER", 0.5, str(int(random.random()*9)+1))
 
     def makeNumber(self, level=3):
         casesWithWeights = [{"name": ["FLOAT"], "weight": 3, "concept": "FLOAT"},
@@ -300,17 +335,23 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         new_case = ""
+        vtype = ""
         for keyword in rcase:
             if keyword == "FLOAT":
-                new_case += str("{:12.2f}".format(random.random()*100))
+                vtype = keyword
+                new_case += self.newOrOld(vtype, 0.5, str("{:12.2f}".format(random.random()*100)))
             elif keyword == "INTEGER":
-                new_case += str(int(random.random()*100))
+                vtype = keyword
+                new_case += self.newOrOld(vtype, 0.5, str(int(random.random()*100)))
             elif keyword == "SMALL_INTEGER":
-                new_case += self.makeSmallInteger()
+                vtype = keyword
+                new_case += self.newOrOld(vtype, 0.5, self.makeSmallInteger())
             elif keyword == "SMALL_POSITIVE_INTEGER":
+                vtype = keyword
                 new_case += self.makeSmallPositiveInteger()
             elif keyword == "NUMBER":
-                new_case += self.makeNumber()
+                ncase, vtype = self.makeNumber()
+                new_case += ncase
             elif keyword == "BASIC_OPERATOR":
                 new_case += random.choice(self.ARITHMETIC_OPERATORS)
             elif keyword == "MODULUS_OPERATOR":
@@ -320,7 +361,7 @@ class CodeGenerator:
 
             new_case += " "
 
-        return new_case
+        return (new_case, vtype)
 
 
     def makeCondition(self,level=3):
@@ -359,7 +400,7 @@ class CodeGenerator:
                 if keyword == "CONDITION":
                     new_case += self.makeCondition(level=level-1)
                 elif keyword == "NUMBER":
-                    new_case += self.makeNumber()
+                    new_case += self.makeNumber()[0]
                 elif keyword == "CONDITIONAL_OPERATOR":
                     new_case += random.choice(self.CONDITIONAL_OPERATORS)
                 else:
@@ -451,7 +492,7 @@ class CodeGenerator:
         for var in self.variable_map:
             if random.random() > 0.6:
                 block.append("print "+var["name"])
-        
+                
         self.variable_map = []
         return block
 
@@ -460,9 +501,10 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
     # codeGen.setConceptArray(["IF"])
     # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
-    # codeGen.setConceptArray(["WHILE"])
+    codeGen.setConceptArray(["WHILE"])
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
-    # codeGen.setConceptArray(["STRING"])
+    # codeGen.setConceptArray(["BOOLEAN"])
     codeGen.setDifficultyLevel(1)
-    print(codeGen.generateCode())
+    for i in codeGen.generateCode():
+        print i
