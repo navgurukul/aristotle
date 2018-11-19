@@ -7,6 +7,7 @@ setrecursionlimit(100)
 # TODO need to work on the difficulty level
 
 class CodeGenerator:
+    NEW_CONCEPTS = []
     ARITHMETIC_OPERATORS = ["+", "-", "*", "/"]
     MODULUS_OPERATOR = "%"
     CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
@@ -73,7 +74,8 @@ class CodeGenerator:
             self.CONCEPT_ARRAYS.append("PRINT")
 
     def setConceptArray(self, concept_array):
-        self.CONCEPT_ARRAYS = concept_array
+        self.NEW_CONCEPTS = concept_array.copy()
+        self.CONCEPT_ARRAYS = concept_array.copy()
         self.sanitiseConceptArrays()
 
     def setDifficultyLevel(self, level=1):
@@ -136,9 +138,13 @@ class CodeGenerator:
         for case in cases:
             if "concept" in case.keys():
                 if case['concept'] in self.CONCEPT_ARRAYS:
+                    if case["concept"] in self.NEW_CONCEPTS:
+                        case["weight"] += 10
                     ncases.append(case)
 
             if case['name'] in self.CONCEPT_ARRAYS:
+                if case["name"] in self.NEW_CONCEPTS:
+                    case["weight"] += 10
                 ncases.append(case)
         
         return ncases
@@ -268,9 +274,10 @@ class CodeGenerator:
         return "print " + self.makeConstant()
 
     def makeStatement(self):
-        casesWithWeights = [{"name": 'CONDITION', "weight": 2},
+        casesWithWeights = [{"name": 'BOOLEAN', "weight": 2},
                             {"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"},
                             {"name": 'IF', "weight": 4, "concept": "IF"},
+                            {"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "IF"},
                             {"name": 'WHILE', "weight": 3},
                             {"name": "PRINT", "weight": 1, "concept": "PRINT" }]
 
@@ -280,8 +287,10 @@ class CodeGenerator:
         new_case = ""
 
         # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
-        if rcase == "CONDITION":
+        if rcase == "BOOLEAN":
             new_case += self.makeCondition()
+        elif rcase == "ARITHMETIC_OPERATORS":
+            new_case += self.makeNumber()[0]
         elif rcase == "VARIABLE":
             new_case += self.makeVarAssignment()
         elif rcase == "IF":
@@ -319,12 +328,12 @@ class CodeGenerator:
         return self.newOrOld("SMALL_POSITIVE_INTEGER", 0.5, str(int(random.random()*9)+1))
 
     def makeNumber(self, level=3):
-        casesWithWeights = [{"name": ["FLOAT"], "weight": 3, "concept": "FLOAT"},
-                            {"name": ["INTEGER"], "weight": 1, "concept": "INTEGER"}]
+        casesWithWeights = [{"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
+                            {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"}]
 
-        if "BASIC_OPERATORS" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.2:
+        if "ARITHMETIC_OPERATORS" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.2:
             casesWithWeights.append(
-                {"name": ["NUMBER", "BASIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "BASIC_OPERATOR"})
+                {"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"})
 
         if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.4:
             casesWithWeights.append(
@@ -352,7 +361,7 @@ class CodeGenerator:
             elif keyword == "NUMBER":
                 ncase, vtype = self.makeNumber()
                 new_case += ncase
-            elif keyword == "BASIC_OPERATOR":
+            elif keyword == "ARITHMETIC_OPERATOR":
                 new_case += random.choice(self.ARITHMETIC_OPERATORS)
             elif keyword == "MODULUS_OPERATOR":
                 new_case += '%'
@@ -501,7 +510,8 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
     # codeGen.setConceptArray(["IF"])
     # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
-    codeGen.setConceptArray(["WHILE"])
+    # codeGen.setConceptArray(["WHILE"])
+    codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["BOOLEAN"])
