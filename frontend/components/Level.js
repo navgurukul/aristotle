@@ -5,6 +5,9 @@ import {Col, Card, CardBody, CardHeader, CardTitle, CardSubtitle, CardText, Prog
 import { clearLevel } from '../services/data';
 import { fetchApi } from '../services/api';
 
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { docco } from 'react-syntax-highlighter/dist/styles/hljs';
+
 class Level extends React.Component {
 
   constructor(props) {
@@ -123,6 +126,7 @@ class Level extends React.Component {
   }
 
   render() {
+    const codeString = '(num) => num + 1';
     return (
       <>
       <Col xs="12" sm="12" md="12" lg="12" xl="12"><h1>Level {this.state.level} ({this.state.stageName})</h1></Col>
@@ -134,7 +138,7 @@ class Level extends React.Component {
           </CardHeader>
           <CardBody>
               {this.getAnswerStateAlert()}
-              <CardText>{ this.state.questions[this.state.currentQuestionIndex].text }</CardText>
+              <CardText> <SyntaxHighlighter language='python' style={docco}>{ this.state.questions[this.state.currentQuestionIndex].text }</SyntaxHighlighter> </CardText>
             <Form>
               <FormGroup>
                 <Input type="textarea" name="text" id="questionAnswer" value={this.state.userAnswer} onChange={this.handleAnswerChange.bind(this)} />
