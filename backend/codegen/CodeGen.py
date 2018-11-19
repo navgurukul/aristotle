@@ -11,7 +11,7 @@ class CodeGenerator:
     CONDITIONAL_OPERATORS = ["==", "!=", "<", ">", ">=", "<="]
     BOOLEAN_VALUES = ["True", "False"]
     VARIABLES_ARRAY = ["caboVerde", "costaRica", "dominicanRepublic", "elSalvador", "guineaBissau",
-                        "holySee", "koreaSouth", "newZealand", "palestinianTerritories", "sanMarino", 
+                        "holySee", "koreaSouth", "newZealand", "palestinianTerritories", "sanMarino",
                         "solomonIslands", "sriLanka", "timorLeste", "unitedKingdom", "southSudan"]
     INDEX_VARIABLES_NAMES = ["ctr", "index", "i", "n"]
 
@@ -64,7 +64,7 @@ class CodeGenerator:
                     for n in d["shouldBeThere"]:
                         if n not in self.CONCEPT_ARRAYS:
                             self.CONCEPT_ARRAYS.append(n)
-        
+
         if "VARIABLE" not in self.CONCEPT_ARRAYS:
             self.CONCEPT_ARRAYS.append("VARIABLE")
 
@@ -85,7 +85,7 @@ class CodeGenerator:
         for i in self.variable_map:
             if i['type'] == VTYPE:
                 nmap.append(i["name"])
-        
+
         if len(nmap):
             return random.choice(nmap)
         else:
@@ -95,15 +95,15 @@ class CodeGenerator:
         var = ""
         if random.random() > prob:
             var = self.getVariable(vtype)
-        
+
         if not var:
             var = nvalue
-        
+
         return var
 
     def makeBoolean(self):
         return self.newOrOld("BOOLEAN", 0.4, random.choice(self.BOOLEAN_VALUES))
- 
+
     def makeString(self):
         return self.newOrOld("STRING", 0.5, '"' + random.choice(self.VARIABLES_ARRAY) + '"')
 
@@ -145,7 +145,7 @@ class CodeGenerator:
                 if case["name"] in self.NEW_CONCEPTS:
                     case["weight"] += 10
                 ncases.append(case)
-        
+
         return ncases
 
     def makeList(self, level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
@@ -154,7 +154,7 @@ class CodeGenerator:
 
         if self.difficulty_level > 0.5:
             casesWithWeights.append({"name": 'LIST', "weight": 2})
-            
+
         casesWithWeights = self.validCases(casesWithWeights)
 
         rcase = self.prepareForWeightedSelection(casesWithWeights)
@@ -200,7 +200,7 @@ class CodeGenerator:
         casesWithWeights = [{"name": "NUMBER", "weight": 3},
                             {"name": "STRING", "weight": 2},
                             {"name": "BOOLEAN", "weight": 1}]
-        
+
         if self.difficulty_level > 0.4:
             casesWithWeights.append({"name": "LIST", "weight": 2})
 
@@ -222,14 +222,14 @@ class CodeGenerator:
 
     def makeVarAssignment(self):
         # BREAK NUMBER CASE INTO INTEGER AND FLOAT
-        # USE VARIABLE PROPERLY AGAIN AND AGAIN IN THE CODE 
+        # USE VARIABLE PROPERLY AGAIN AND AGAIN IN THE CODE
         casesWithWeights = [{"name": ["VARNAME", "=", 'NUMBER'], "weight": 4, "concept": "NUMBER"},
                             {"name": ["VARNAME", "=", 'STRING'], "weight": 2, "concept": "STRING"},
                             {"name": ["VARNAME", "=", 'BOOLEAN'], "weight": 1, "concept": "BOOLEAN"}]
-        
+
         if self.difficulty_level > 0.2:
             casesWithWeights.append({"name": ["VARNAME", "=", 'LIST'], "weight": 1, "concept": "LIST"})
-        
+
         elif self.difficulty_level > 0.4:
             casesWithWeights.append({"name": ["VARNAME", "=", 'CONDITION'], "weight": 2, "concept": "CONDITION"})
 
@@ -269,8 +269,8 @@ class CodeGenerator:
 
     def makePrintStatement(self):
         if (len(self.variable_map)):
-            return "print " + random.choice(self.variable_map)["name"]
-        return "print " + self.makeConstant()
+            return "print(" + random.choice(self.variable_map)["name"] + ")"
+        return "print(" + self.makeConstant() + ")"
 
     def makeStatement(self):
         casesWithWeights = [{"name": 'BOOLEAN', "weight": 2},
@@ -493,7 +493,7 @@ class CodeGenerator:
     def makeBlock(self, num=5):
         statements = []
         num_statements = int(random.random()*num*3*min(0.3,self.difficulty_level))+1
-        
+
         for _ in range(num_statements):
             statements.append(self.getStatement())
         return statements
@@ -505,8 +505,8 @@ class CodeGenerator:
 
         for var in self.variable_map:
             if random.random() > 0.6:
-                block.append("print "+var["name"])
-                
+                block.append("print("+var["name"]+")") 
+
         self.variable_map = []
         return block
 
