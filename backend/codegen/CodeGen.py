@@ -1,8 +1,6 @@
 import random
-from sys import getrecursionlimit, setrecursionlimit
 from functools import reduce
 
-setrecursionlimit(100)
 # TODO need to work on the glevel
 # TODO need to work on the difficulty level
 
@@ -75,8 +73,9 @@ class CodeGenerator:
 
     def setConceptArray(self, concept_array):
         self.NEW_CONCEPTS = concept_array.copy()
-        self.CONCEPT_ARRAYS = concept_array.copy()
+        self.CONCEPT_ARRAYS = concept_array
         self.sanitiseConceptArrays()
+        print(self.CONCEPT_ARRAYS)
 
     def setDifficultyLevel(self, level=1):
         self.difficulty_level = level
@@ -277,7 +276,7 @@ class CodeGenerator:
         casesWithWeights = [{"name": 'BOOLEAN', "weight": 2},
                             {"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"},
                             {"name": 'IF', "weight": 4, "concept": "IF"},
-                            {"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "IF"},
+                            {"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "NUMBER"},
                             {"name": 'WHILE', "weight": 3},
                             {"name": "PRINT", "weight": 1, "concept": "PRINT" }]
 
@@ -343,7 +342,7 @@ class CodeGenerator:
                 {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
 
         if flag=="onlyArithmetic":
-            casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"}]
+            casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "IF"}]
 
         casesWithWeights = self.validCases(casesWithWeights)
 
@@ -516,8 +515,8 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
     # codeGen.setConceptArray(["IF"])
     # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
-    # codeGen.setConceptArray(["WHILE"])
-    codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
+    codeGen.setConceptArray(["WHILE"])
+    # codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["BOOLEAN"])
