@@ -469,23 +469,23 @@ class CodeGenerator:
                 "\n\t".join(self.getBiggerBlock())
 
 
+    def getStatement(self):
+        try:
+            statement = self.makeStatement()
+            return statement
+        except RuntimeError:
+            return self.getStatement()
+
     def makeBlock(self, num=5):
         statements = []
         num_statements = int(random.random()*num*3*min(0.3,self.difficulty_level))+1
         
         for _ in range(num_statements):
-            statements.append(self.makeStatement())
+            statements.append(self.getStatement())
         return statements
 
-    def getBlock(self):
-        try:
-            block = self.makeBlock()
-            return block
-        except RuntimeError:
-            return self.getBlock()
-
     def generateCode(self):
-        block = self.getBlock()
+        block = self.makeBlock()
         block = map(lambda x: x.split('\n'), block)
         block = reduce(lambda x, y: x+y, block)
 
