@@ -3,17 +3,17 @@
     {
       "totalLevels": 5,
       "name": "Arithmetic Operators",
-      "id": "Arithmetic_OPERATORS"
+      "id": "ARITHMETIC_OPERATORS"
     },
     {
       "totalLevels": 5,
       "name": "Booleans",
-      "id": "BOOLEAN"
+      "id": "BOOLEAN_OPERATORS"
     },
     {
       "totalLevels": 5,
       "name": "Conditional Operators",
-      "id": "CONDITIONAL_OPERATORS"
+      "id": "CONDITIONAL_OPERATOR"
     },
     {
       "totalLevels": 5,
