@@ -507,4 +507,4 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["BOOLEAN"])
     codeGen.setDifficultyLevel(1)
     for i in codeGen.generateCode():
-        print i
+        print(i)
