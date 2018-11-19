@@ -37,7 +37,6 @@ class Stage(Resource):
 
 @api.route("/stages/<stage_id>/level/<level_id>/random_questions")
 class LevelRandomQuestionList(Resource):
-
     def get(self, stage_id, level_id):
         codeGen = CodeGenerator()
         level = int(level_id)/5.0
@@ -45,7 +44,7 @@ class LevelRandomQuestionList(Resource):
         codeGen.setConceptArray([stage_id])
 
         results = []
-        for i in range(10):
+        for _ in range(10):
             results.append({ "text": "\n".join(codeGen.generateCode()) , "answer" : 1 })
 
         return results
