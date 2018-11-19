@@ -290,7 +290,7 @@ class CodeGenerator:
         if rcase == "BOOLEAN":
             new_case += self.makeCondition()
         elif rcase == "ARITHMETIC_OPERATORS":
-            new_case += self.makeNumber()[0]
+            new_case += self.arithmeticStatement()[0]
         elif rcase == "VARIABLE":
             new_case += self.makeVarAssignment()
         elif rcase == "IF":
@@ -327,7 +327,10 @@ class CodeGenerator:
     def makeSmallPositiveInteger(self):
         return self.newOrOld("SMALL_POSITIVE_INTEGER", 0.5, str(int(random.random()*9)+1))
 
-    def makeNumber(self, level=3):
+    def arithmeticStatement(self):
+        return self.makeNumber(3, flag="onlyArithmetic")
+
+    def makeNumber(self, level=3, flag=""):
         casesWithWeights = [{"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
                             {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"}]
 
@@ -338,6 +341,9 @@ class CodeGenerator:
         if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and self.difficulty_level > 0.4:
             casesWithWeights.append(
                 {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
+
+        if flag=="onlyArithmetic":
+            casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"}]
 
         casesWithWeights = self.validCases(casesWithWeights)
 
