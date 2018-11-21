@@ -42,7 +42,7 @@ class CodeGenerator:
                 "shouldBeThere": ["CONDITIONAL_OPERATOR"]
             }, {
                 "ifThere": ["ARITHMETIC_OPERATORS"],
-                "shouldBeThere": ["NUMBER"]
+                "shouldBeThere": ["NUMBER", "BRACKET"]
             }, {
                 "ifThere": ["LIST"],
                 "shouldBeThere": ["NUMBER", "STRING"]
@@ -353,16 +353,24 @@ class CodeGenerator:
     def makeNumber(self, flag=""):
         self.complexity -= 1
 
-        casesWithWeights = [{"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
-                            {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"}]
+        casesWithWeights = [
+                                {"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
+                                {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"},
+                                {"name": ["SMALL_INTEGER"], "weight": 3, "concept": "INTEGER"},
+                                {"name": ["SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "INTEGER"}
+                            ]
 
         if "ARITHMETIC_OPERATORS" in self.CONCEPT_ARRAYS and self.complexity > 2:
             casesWithWeights.append(
                 {"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"})
+            casesWithWeights.append(
+                {"name": ["(", "NUMBER", "ARITHMETIC_OPERATOR", "NUMBER", ")"], "weight": 1, "concept": "ARITHMETIC_OPERATORS"})
 
         if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and self.complexity > 2:
             casesWithWeights.append(
                 {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
+            casesWithWeights.append(
+                {"name": ["(", "INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER", ")"], "weight": 1, "concept": "MODULUS_OPERATOR"})
 
         if flag=="onlyArithmetic" and self.complexity > 2:
             casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"}]
