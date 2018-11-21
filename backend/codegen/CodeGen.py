@@ -19,6 +19,8 @@ class CodeGenerator:
 
     variable_map = []
     difficulty_level = 1
+    indent = 0
+    complexity = 10
 
     def __init__(self):
         self.CONCEPT_ARRAYS = [ "PRINT", \
@@ -58,6 +60,7 @@ class CodeGenerator:
                 "shouldBeThere": ["AND", "OR", "NOT", "BOOLEAN", "CONDITION", "BRACKET"]
             }
         ]
+
         for d in data:
             for m in d["ifThere"]:
                 if m in self.CONCEPT_ARRAYS:
@@ -102,9 +105,11 @@ class CodeGenerator:
         return var
 
     def makeBoolean(self):
+        self.complexity -= 1
         return self.newOrOld("BOOLEAN", 0.4, random.choice(self.BOOLEAN_VALUES))
 
     def makeString(self):
+        self.complexity -= 1
         return self.newOrOld("STRING", 0.5, '"' + random.choice(self.VARIABLES_ARRAY) + '"')
 
     def selectWeightedRandom(self, container, weights):
@@ -120,7 +125,6 @@ class CodeGenerator:
                 break
 
         return element
-
 
     def prepareForWeightedSelection(self, selectionList):
         cases = []
@@ -148,9 +152,11 @@ class CodeGenerator:
 
         return ncases
 
-    def makeList(self, level=3, casesWithWeights = [{"name": "NUMBER", "weight": 3},
+    def makeList(self, casesWithWeights = [{"name": "NUMBER", "weight": 3},
                             {"name": "STRING", "weight": 2},
                             {"name": "BOOLEAN", "weight": 1}]):
+
+        self.complexity -= 2
 
         if self.difficulty_level > 0.5:
             casesWithWeights.append({"name": 'LIST', "weight": 2})
@@ -187,7 +193,7 @@ class CodeGenerator:
                         newCasesWithWeights.append(i)
 
                 list_type = self.prepareForWeightedSelection(newCasesWithWeights)
-                (ncase, nvtype) = self.makeList(level=level-2, casesWithWeights=[{"name": list_type, "weight": 1}])
+                (ncase, nvtype) = self.makeList(casesWithWeights=[{"name": list_type, "weight": 1}])
                 new_case = new_case + ncase + ', '
 
             vtype += "_" + nvtype
@@ -196,7 +202,9 @@ class CodeGenerator:
         new_case += ']'
         return (new_case, vtype)
 
-    def makeConstant(self, level=2):
+    def makeConstant(self):
+        self.complexity -= 1
+
         casesWithWeights = [{"name": "NUMBER", "weight": 3},
                             {"name": "STRING", "weight": 2},
                             {"name": "BOOLEAN", "weight": 1}]
@@ -272,33 +280,7 @@ class CodeGenerator:
             return "print(" + random.choice(self.variable_map)["name"] + ")"
         return "print(" + self.makeConstant() + ")"
 
-    def makeStatement(self):
-        casesWithWeights = [{"name": 'BOOLEAN', "weight": 2},
-                            {"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"},
-                            {"name": 'IF', "weight": 4, "concept": "IF"},
-                            {"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "NUMBER"},
-                            {"name": 'WHILE', "weight": 3},
-                            {"name": "PRINT", "weight": 1, "concept": "PRINT" }]
-
-        casesWithWeights = self.validCases(casesWithWeights)
-        rcase = self.prepareForWeightedSelection(casesWithWeights)
-
-        new_case = ""
-
-        # TODO SHIFT SUCH IFS TO SWITCH STATEMENTS
-        if rcase == "BOOLEAN":
-            new_case += self.makeCondition()
-        elif rcase == "ARITHMETIC_OPERATORS":
-            new_case += self.arithmeticStatement()[0]
-        elif rcase == "VARIABLE":
-            new_case += self.makeVarAssignment()
-        elif rcase == "IF":
-            new_case += self.makeIfBlock()
-        elif rcase == "WHILE":
-            new_case += self.makeWhileBlock()
-        elif rcase == "PRINT":
-            new_case += self.makePrintStatement()
-
+    def sanitiseStatement(self, new_case):
         #TODO - DO THIS WITH REGEX INSTEAD
         while ("  " in new_case):
             new_case = new_case.replace("  ", " ")
@@ -320,16 +302,55 @@ class CodeGenerator:
 
         return new_case
 
+    def makeStatement(self, start=False):
+        if start:
+            self.indent = 3
+            self.complexity = 10
+
+        casesWithWeights = [{"name": 'BOOLEAN', "weight": 2}]
+        casesWithWeights.append({"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"})
+        casesWithWeights.append({"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "NUMBER"})
+        casesWithWeights.append({"name": "PRINT", "weight": 1, "concept": "PRINT" })
+
+        if self.indent > 1:
+            casesWithWeights.append({"name": 'IF', "weight": 4, "concept": "IF"})
+            casesWithWeights.append({"name": 'WHILE', "weight": 3})
+
+        casesWithWeights = self.validCases(casesWithWeights)
+        rcase = self.prepareForWeightedSelection(casesWithWeights)
+        new_case = ""
+
+        if rcase == "BOOLEAN":
+            new_case += self.makeCondition()
+        elif rcase == "ARITHMETIC_OPERATORS":
+            new_case += self.arithmeticStatement()[0]
+        elif rcase == "VARIABLE":
+            new_case += self.makeVarAssignment()
+        elif rcase == "IF":
+            new_case += self.makeIfBlock()
+        elif rcase == "WHILE":
+            new_case += self.makeWhileBlock()
+        elif rcase == "PRINT":
+            new_case += self.makePrintStatement()
+
+        new_case = self.sanitiseStatement(new_case)
+
+        return new_case
+
     def makeSmallInteger(self):
+        self.complexity -= 1
         return str(int(random.random()*10))
 
     def makeSmallPositiveInteger(self):
+        self.complexity -= 1
         return self.newOrOld("SMALL_POSITIVE_INTEGER", 0.5, str(int(random.random()*9)+1))
 
     def arithmeticStatement(self):
-        return self.makeNumber(3, flag="onlyArithmetic")
+        return self.makeNumber(flag="onlyArithmetic")
 
-    def makeNumber(self, level=3, flag=""):
+    def makeNumber(self, flag=""):
+        self.complexity -= 1
+
         casesWithWeights = [{"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
                             {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"}]
 
@@ -366,41 +387,35 @@ class CodeGenerator:
             elif keyword == "NUMBER":
                 ncase, vtype = self.makeNumber()
                 new_case += ncase
-            elif keyword == "ARITHMETIC_OPERATOR":
+            elif keyword == "ARITHMETIC_OPERATOR" and self.complexity>0:
+                self.complexity -= 2
                 new_case += random.choice(self.ARITHMETIC_OPERATORS)
-            elif keyword == "MODULUS_OPERATOR":
+            elif keyword == "MODULUS_OPERATOR" and self.complexity>0:
+                self.complexity -= 2
                 new_case += '%'
             else:
                 new_case += keyword
-
             new_case += " "
 
         return (new_case, vtype)
 
-
-    def makeCondition(self,level=3):
+    def makeCondition(self):
         casesWithWeights = []
-        if level == 2 or level == 1:
-            casesWithWeights.append({"name": ["True"], "weight": 2, "concept": "BOOLEAN"})
-            casesWithWeights.append({"name": ["False"], "weight": 1, "concept": "BOOLEAN"})
+        casesWithWeights.append({"name": ["True"], "weight": 1, "concept": "BOOLEAN"})
+        casesWithWeights.append({"name": ["False"], "weight": 1, "concept": "BOOLEAN"})
 
-        if level > 1:
-            casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2, "concept": "BRACKET"})
+        casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2, "concept": "BRACKET"})
 
-        if level > 1:
-            casesWithWeights.append(
-                {"name": ["CONDITION", "and", "CONDITION"], "weight": 4, "concept": "AND"})
+        casesWithWeights.append(
+            {"name": ["CONDITION", "and", "CONDITION"], "weight": 4, "concept": "AND"})
 
-        if level > 1:
-            casesWithWeights.append(
-                {"name": ["CONDITION", "or", "CONDITION"], "weight": 3, "concept": "OR"})
+        casesWithWeights.append(
+            {"name": ["CONDITION", "or", "CONDITION"], "weight": 3, "concept": "OR"})
 
-        if level > 1:
-            casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1, "concept": "NOT"})
+        casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1, "concept": "NOT"})
 
-        if "CONDITIONAL_OPERATOR" in self.CONCEPT_ARRAYS and level > 1:
-            casesWithWeights.append(
-                {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5, "concept": "CONDITIONAL_OPERATOR"})
+        casesWithWeights.append(
+            {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5, "concept": "CONDITIONAL_OPERATOR"})
 
         casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
@@ -410,12 +425,14 @@ class CodeGenerator:
 
         else:
             new_case = ""
+
             for keyword in rcase:
                 if keyword == "CONDITION":
-                    new_case += self.makeCondition(level=level-1)
+                    new_case += self.makeCondition()
                 elif keyword == "NUMBER":
                     new_case += self.makeNumber()[0]
-                elif keyword == "CONDITIONAL_OPERATOR":
+                elif keyword == "CONDITIONAL_OPERATOR" and self.complexity>0:
+                    self.complexity -= 2
                     new_case += random.choice(self.CONDITIONAL_OPERATORS)
                 else:
                     new_case += keyword
@@ -442,7 +459,9 @@ class CodeGenerator:
     def incrementCondition(self, index_variable):
         return random.choice([index_variable + " += 1", index_variable + " = " + index_variable + " + 1"])
 
-    def makeWhileBlock(self, level=2):
+    def makeWhileBlock(self):
+        self.indent -= 1
+
         index_variable = random.choice(self.INDEX_VARIABLES_NAMES)
 
         return self.initaliseIncrementVariable(index_variable) + "\n" \
@@ -450,7 +469,9 @@ class CodeGenerator:
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\n\t" + self.incrementCondition(index_variable)
 
-    def makeIfBlock(self, level=3):
+    def makeIfBlock(self):
+        self.indent -= 1
+        
         casesWithWeights = [{"name": "IF", "weight": 2}]
 
         if self.difficulty_level > 0.3:
@@ -464,42 +485,43 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
 
         if rcase == "IF":
-            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
+            return "if ("+self.makeCondition()+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\n"
 
         elif rcase == "IFELSE":
-            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
+            return "if ("+self.makeCondition()+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\nelse:\n\t" + \
                 "\n\t".join(self.getBiggerBlock())
 
         elif rcase == "IFELIFSE":
-            return "if ("+self.makeCondition(level=level-1)+") :\n\t" + \
+            return "if ("+self.makeCondition()+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
-                "\nelif ("+self.makeCondition(level=level-1)+") :\n\t" + \
+                "\nelif ("+self.makeCondition()+") :\n\t" + \
                 "\n\t".join(self.getBiggerBlock()) + \
                 "\nelse:\n\t" + \
                 "\n\t".join(self.getBiggerBlock())
 
 
-    def getStatement(self):
+    def getStatement(self, start=False):
         try:
-            statement = self.makeStatement()
+            statement = self.makeStatement(start=start)
             return statement
         except RuntimeError:
-            return self.getStatement()
+            return self.getStatement(start = start)
 
-    def makeBlock(self, num=5):
+    def makeBlock(self, num=2, start=False):
         statements = []
-        num_statements = int(random.random()*num*3*min(0.3,self.difficulty_level))+1
+        num_statements = int(random.random()*num*3*min(0.3,self.difficulty_level))+2
 
         for _ in range(num_statements):
-            statements.append(self.getStatement())
+            statements.append(self.getStatement(start=start))
+        
         return statements
 
     def generateCode(self):
-        block = self.makeBlock()
+        block = self.makeBlock(start=True)
         block = map(lambda x: x.split('\n'), block)
         block = reduce(lambda x, y: x+y, block)
 
