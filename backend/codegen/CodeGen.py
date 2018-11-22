@@ -548,6 +548,8 @@ class CodeGenerator:
         return statements
 
     def generateCode(self):
+        self.variable_map = []
+
         block = self.makeBlock(start=True)
         block = map(lambda x: x.split('\n'), block)
         block = reduce(lambda x, y: x+y, block)

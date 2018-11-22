@@ -46,8 +46,7 @@ class LevelRandomQuestionList(Resource):
             codeGen.setDifficultyLevel(level)
             codeGen.setConceptArray([stage_id])
             code = codeGen.generateCode()
-            print(code)
             results.append({ "text": "\n".join(code) , "answer" : 1 })
-            print(results[-1]["text"]+"\n\n")
+            sys.stdout.flush()
 
         return results
