@@ -41,6 +41,9 @@ class CodeGenerator:
                 "ifThere": ["IF"],
                 "shouldBeThere": ["CONDITIONAL_OPERATOR"]
             }, {
+                "ifThere": ["MODULUS_OPERATOR"],
+                "shouldBeThere": ["NUMBER", "BRACKET"]
+            }, {
                 "ifThere": ["ARITHMETIC_OPERATORS"],
                 "shouldBeThere": ["NUMBER", "BRACKET"]
             }, {
@@ -308,7 +311,7 @@ class CodeGenerator:
 
         casesWithWeights = [{"name": 'BOOLEAN_OPERATORS', "weight": 2}]
         casesWithWeights.append({"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"})
-        casesWithWeights.append({"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "NUMBER"})
+        casesWithWeights.append({"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "ARITHMETIC_OPERATORS"})
         casesWithWeights.append({"name": "PRINT", "weight": 1, "concept": "PRINT" })
 
         if self.indent > 1:
@@ -316,6 +319,7 @@ class CodeGenerator:
             casesWithWeights.append({"name": 'WHILE', "weight": 3})
 
         casesWithWeights = self.validCases(casesWithWeights)
+
         rcase = self.prepareForWeightedSelection(casesWithWeights)
         new_case = ""
 
@@ -371,9 +375,9 @@ class CodeGenerator:
             casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 2, "concept": "ARITHMETIC_OPERATORS"}]
 
         casesWithWeights = self.validCases(casesWithWeights)
-
+        
         rcase = self.prepareForWeightedSelection(casesWithWeights)
-
+        
         new_case = ""
         vtype = ""
         for keyword in rcase:
@@ -552,7 +556,17 @@ if __name__ == "__main__":
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["BOOLEAN"])
+
+    # STAGES
     codeGen.setDifficultyLevel(1)
 
-    for i in codeGen.generateCode():
-        print(i)
+    concepts = ["ARITHMETIC_OPERATORS", "BOOLEAN_OPERATORS", "CONDITIONAL_OPERATOR", "MODULUS_OPERATOR", "IF", "WHILE"]
+    # concepts = ["MODULUS_OPERATOR"]
+    for concept in concepts:
+        print("FOR CONCEPT", concept)        
+        codeGen.setConceptArray([concept])
+
+        for i in codeGen.generateCode():
+            print(i)
+
+        print("\n\n")
