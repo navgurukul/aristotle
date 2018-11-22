@@ -40,11 +40,11 @@ class LevelRandomQuestionList(Resource):
     def get(self, stage_id, level_id):
         codeGen = CodeGenerator()
         level = int(level_id)/5.0
-        codeGen.setDifficultyLevel(level)
-        codeGen.setConceptArray([stage_id])
 
         results = []
         for _ in range(10):
+            codeGen.setDifficultyLevel(level)
+            codeGen.setConceptArray([stage_id])
             code = codeGen.generateCode()
             print(code)
             results.append({ "text": "\n".join(code) , "answer" : 1 })

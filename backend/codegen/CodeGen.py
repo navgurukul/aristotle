@@ -580,7 +580,8 @@ if __name__ == "__main__":
         print("FOR CONCEPT", concept)        
         codeGen.setConceptArray([concept])
 
-        for i in codeGen.generateCode():
-            print(i)
+        for i in range(5):
+            for i in codeGen.generateCode():
+                print(i)
 
-        print("\n\n")
+            print("\n\n")
