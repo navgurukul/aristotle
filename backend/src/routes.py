@@ -45,6 +45,9 @@ class LevelRandomQuestionList(Resource):
 
         results = []
         for _ in range(10):
-            results.append({ "text": "\n".join(codeGen.generateCode()) , "answer" : 1 })
+            code = codegen.generateCode()
+            print(code)
+            results.append({ "text": "\n".join(code) , "answer" : 1 })
+            print(results+"\n\n")
 
         return results

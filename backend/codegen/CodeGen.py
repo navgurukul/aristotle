@@ -453,7 +453,7 @@ class CodeGenerator:
 
             for keyword in rcase:
                 if keyword == "CONDITION":
-                    self.complexity -=  1
+                    self.complexity -=  3
                     new_case += self.makeCondition()
                 elif keyword == "NUMBER":
                     new_case += self.makeNumber()[0]
@@ -553,7 +553,7 @@ class CodeGenerator:
         block = reduce(lambda x, y: x+y, block)
 
         for var in self.variable_map:
-            if random.random() > 0.6:
+            if random.random() > 0.75:
                 block.append("print("+var["name"]+")") 
 
         self.variable_map = []
@@ -574,7 +574,7 @@ if __name__ == "__main__":
     codeGen.setDifficultyLevel(1)
 
     concepts = ["ARITHMETIC_OPERATORS", "BOOLEAN_OPERATORS", "CONDITIONAL_OPERATOR", "MODULUS_OPERATOR", "IF", "WHILE"]
-    # concepts = ["CONDITIONAL_OPERATOR"]
+    concepts = ["BOOLEAN_OPERATORS"]
 
     for concept in concepts:
         print("FOR CONCEPT", concept)        
