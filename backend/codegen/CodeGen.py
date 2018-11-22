@@ -83,6 +83,8 @@ class CodeGenerator:
         self.sanitiseConceptArrays()
 
     def setDifficultyLevel(self, level=1):
+        self.indent = min(max(1, int(level * 6)), 4)
+        self.complexity = max(int(level * 10), 1)
         self.difficulty_level = level
 
     def getVariable(self, VTYPE):
@@ -306,8 +308,7 @@ class CodeGenerator:
 
     def makeStatement(self, start=False):
         if start:
-            self.indent = 3
-            self.complexity = 10
+            self.setDifficultyLevel(self.difficulty_level)
 
         casesWithWeights = [{"name": 'BOOLEAN_OPERATORS', "weight": 2}]
         casesWithWeights.append({"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"})
@@ -550,7 +551,7 @@ if __name__ == "__main__":
     codeGen = CodeGenerator()
     # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
     # codeGen.setConceptArray(["IF"])
-    codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
+    # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
     # codeGen.setConceptArray(["WHILE"])
     # codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
     # codeGen.setConceptArray(["INTEGER"])
@@ -559,6 +560,7 @@ if __name__ == "__main__":
 
     # STAGES
     codeGen.setDifficultyLevel(1)
+    print(codeGen.complexity)
 
     concepts = ["ARITHMETIC_OPERATORS", "BOOLEAN_OPERATORS", "CONDITIONAL_OPERATOR", "MODULUS_OPERATOR", "IF", "WHILE"]
     # concepts = ["MODULUS_OPERATOR"]
