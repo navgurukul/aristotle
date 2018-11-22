@@ -26,7 +26,7 @@ class CodeGenerator:
         self.CONCEPT_ARRAYS = [ "PRINT", \
                     "INTEGER", "FLOAT", "STRING", "BOOLEAN",  "LIST", \
                     "CONDITION", \
-                    "ARITHMETIC_OPERATORS", "MODULUS_OPERATOR", "CONDITIONAL_OPERATOR", \
+                    "ARITHMETIC_OPERATORS", "MODULUS_OPERATOR", "CONDITIONAL_OPERATOR", "BOOLEAN_OPERATORS", \
                     "BRACKET", "AND", "OR", "NOT", \
                     "VARIABLE", "WHILE", \
                     "IF", "IFELSE", "IFELIFSE" ]
@@ -108,7 +108,6 @@ class CodeGenerator:
         return self.newOrOld("BOOLEAN", 0.4, random.choice(self.BOOLEAN_VALUES))
 
     def makeString(self):
-        self.complexity -= 1
         return self.newOrOld("STRING", 0.5, '"' + random.choice(self.VARIABLES_ARRAY) + '"')
 
     def selectWeightedRandom(self, container, weights):
@@ -205,8 +204,6 @@ class CodeGenerator:
         return (new_case, vtype)
 
     def makeConstant(self):
-        self.complexity -= 1
-
         casesWithWeights = [{"name": "NUMBER", "weight": 3},
                             {"name": "STRING", "weight": 2},
                             {"name": "BOOLEAN", "weight": 1}]
@@ -309,7 +306,7 @@ class CodeGenerator:
             self.indent = 3
             self.complexity = 10
 
-        casesWithWeights = [{"name": 'BOOLEAN', "weight": 2}]
+        casesWithWeights = [{"name": 'BOOLEAN_OPERATORS', "weight": 2}]
         casesWithWeights.append({"name": 'VARIABLE', "weight": 4, "concept": "VARIABLE"})
         casesWithWeights.append({"name": 'ARITHMETIC_OPERATORS', "weight": 3, "concept": "NUMBER"})
         casesWithWeights.append({"name": "PRINT", "weight": 1, "concept": "PRINT" })
@@ -322,7 +319,7 @@ class CodeGenerator:
         rcase = self.prepareForWeightedSelection(casesWithWeights)
         new_case = ""
 
-        if rcase == "BOOLEAN":
+        if rcase == "BOOLEAN_OPERATORS":
             new_case += self.makeCondition()
         elif rcase == "ARITHMETIC_OPERATORS":
             new_case += self.arithmeticStatement()[0]
@@ -351,29 +348,27 @@ class CodeGenerator:
         return self.makeNumber(flag="onlyArithmetic")
 
     def makeNumber(self, flag=""):
-        self.complexity -= 1
-
         casesWithWeights = [
                                 {"name": ["FLOAT"], "weight": 1, "concept": "FLOAT"},
-                                {"name": ["INTEGER"], "weight": 3, "concept": "INTEGER"},
+                                {"name": ["INTEGER"], "weight": 4, "concept": "INTEGER"},
                                 {"name": ["SMALL_INTEGER"], "weight": 3, "concept": "INTEGER"},
-                                {"name": ["SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "INTEGER"}
+                                {"name": ["SMALL_POSITIVE_INTEGER"], "weight": 6, "concept": "INTEGER"}
                             ]
 
         if "ARITHMETIC_OPERATORS" in self.CONCEPT_ARRAYS and self.complexity > 2:
             casesWithWeights.append(
-                {"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"})
+                {"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 2, "concept": "ARITHMETIC_OPERATORS"})
             casesWithWeights.append(
                 {"name": ["(", "NUMBER", "ARITHMETIC_OPERATOR", "NUMBER", ")"], "weight": 1, "concept": "ARITHMETIC_OPERATORS"})
 
         if "MODULUS_OPERATOR" in self.CONCEPT_ARRAYS and self.complexity > 2:
             casesWithWeights.append(
-                {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 3, "concept": "MODULUS_OPERATOR"})
+                {"name": ["INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER"], "weight": 2, "concept": "MODULUS_OPERATOR"})
             casesWithWeights.append(
                 {"name": ["(", "INTEGER", "MODULUS_OPERATOR", "SMALL_POSITIVE_INTEGER", ")"], "weight": 1, "concept": "MODULUS_OPERATOR"})
 
         if flag=="onlyArithmetic" and self.complexity > 2:
-            casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 3, "concept": "ARITHMETIC_OPERATORS"}]
+            casesWithWeights = [{"name": ["NUMBER", "ARITHMETIC_OPERATOR", "NUMBER"], "weight": 2, "concept": "ARITHMETIC_OPERATORS"}]
 
         casesWithWeights = self.validCases(casesWithWeights)
 
@@ -405,27 +400,31 @@ class CodeGenerator:
                 new_case += '%'
             else:
                 new_case += keyword
+
             new_case += " "
 
         return (new_case, vtype)
 
     def makeCondition(self):
+        self.complexity -= -1
+
         casesWithWeights = []
-        casesWithWeights.append({"name": ["True"], "weight": 1, "concept": "BOOLEAN"})
-        casesWithWeights.append({"name": ["False"], "weight": 1, "concept": "BOOLEAN"})
+        casesWithWeights.append({"name": ["True"], "weight": 3, "concept": "BOOLEAN"})
+        casesWithWeights.append({"name": ["False"], "weight": 3, "concept": "BOOLEAN"})
 
         casesWithWeights.append({"name": ["(", "CONDITION", ")"], "weight": 2, "concept": "BRACKET"})
 
-        casesWithWeights.append(
-            {"name": ["CONDITION", "and", "CONDITION"], "weight": 4, "concept": "AND"})
+        if self.complexity>2:
+            casesWithWeights.append(
+                {"name": ["CONDITION", "and", "CONDITION"], "weight": 3, "concept": "AND"})
 
-        casesWithWeights.append(
-            {"name": ["CONDITION", "or", "CONDITION"], "weight": 3, "concept": "OR"})
+            casesWithWeights.append(
+                {"name": ["CONDITION", "or", "CONDITION"], "weight": 3, "concept": "OR"})
 
-        casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 1, "concept": "NOT"})
+            casesWithWeights.append({"name": ["not", "CONDITION"], "weight": 2, "concept": "NOT"})
 
-        casesWithWeights.append(
-            {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 5, "concept": "CONDITIONAL_OPERATOR"})
+            casesWithWeights.append(
+                {"name": ["(", "NUMBER", "CONDITIONAL_OPERATOR", "NUMBER", ")"], "weight": 3, "concept": "CONDITIONAL_OPERATOR"})
 
         casesWithWeights = self.validCases(casesWithWeights)
         rcase = self.prepareForWeightedSelection(casesWithWeights)
@@ -438,11 +437,12 @@ class CodeGenerator:
 
             for keyword in rcase:
                 if keyword == "CONDITION":
+                    self.complexity -=  1
                     new_case += self.makeCondition()
                 elif keyword == "NUMBER":
                     new_case += self.makeNumber()[0]
-                elif keyword == "CONDITIONAL_OPERATOR" and self.complexity>0:
-                    self.complexity -= 2
+                elif keyword == "CONDITIONAL_OPERATOR":
+                    self.complexity -= 3
                     new_case += random.choice(self.CONDITIONAL_OPERATORS)
                 else:
                     new_case += keyword
@@ -546,12 +546,13 @@ if __name__ == "__main__":
     codeGen = CodeGenerator()
     # codeGen.setConceptArray(["CONDITIONAL_OPERATOR"])
     # codeGen.setConceptArray(["IF"])
-    # codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
+    codeGen.setConceptArray(["BOOLEAN_OPERATORS"])
     # codeGen.setConceptArray(["WHILE"])
-    codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
+    # codeGen.setConceptArray(["ARITHMETIC_OPERATORS"])
     # codeGen.setConceptArray(["INTEGER"])
     # codeGen.setConceptArray(["FLOAT"])
     # codeGen.setConceptArray(["BOOLEAN"])
     codeGen.setDifficultyLevel(1)
+
     for i in codeGen.generateCode():
         print(i)
